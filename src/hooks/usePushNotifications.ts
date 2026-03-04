@@ -75,8 +75,11 @@ async function sendTokenToBackend(token: string): Promise<void> {
     token,
   };
 
+  // Stub for now: log the token instead of actual FCM setup since backend might not be running in CI
+  console.log('[push] Stub: Device token registered:', payload);
+
   try {
-    await api.post('/notifications/devices', payload);
+    await api.post('/notifications/register', payload);
   } catch (err) {
     console.error('[push] Failed to register device token', err);
   }

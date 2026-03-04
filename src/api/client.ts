@@ -56,11 +56,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config;
-    if (!original || error.response?.status !== 401 || (original as Record<string, unknown>)._retry) {
+    if (!original || error.response?.status !== 401 || (original as unknown as Record<string, unknown>)._retry) {
       return Promise.reject(error);
     }
 
-    (original as Record<string, unknown>)._retry = true;
+    (original as unknown as Record<string, unknown>)._retry = true;
 
     try {
       if (!refreshPromise) {
