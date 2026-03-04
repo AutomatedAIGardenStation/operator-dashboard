@@ -14,7 +14,18 @@ import {
   IonButton,
 } from '@ionic/react';
 
+import { useHistory } from 'react-router-dom';
+
 export const LoginPage: React.FC = () => {
+  const history = useHistory();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Placeholder login functionality for now
+    localStorage.setItem('token', 'placeholder_token');
+    history.push('/dashboard');
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -28,15 +39,17 @@ export const LoginPage: React.FC = () => {
             <IonCardTitle>Login</IonCardTitle>
           </IonCardHeader>
           <IonCardContent>
-            <IonItem>
-              <IonInput id="email" label="Email" labelPlacement="floating" type="email" disabled />
-            </IonItem>
-            <IonItem>
-              <IonInput id="password" label="Password" labelPlacement="floating" type="password" disabled />
-            </IonItem>
-            <IonButton expand="block" className="ion-margin-top" disabled>
-              Sign In
-            </IonButton>
+            <form onSubmit={handleLogin}>
+              <IonItem>
+                <IonInput id="email" label="Email" labelPlacement="floating" type="email" required />
+              </IonItem>
+              <IonItem>
+                <IonInput id="password" label="Password" labelPlacement="floating" type="password" required />
+              </IonItem>
+              <IonButton expand="block" type="submit" className="ion-margin-top">
+                Sign In
+              </IonButton>
+            </form>
           </IonCardContent>
         </IonCard>
       </IonContent>

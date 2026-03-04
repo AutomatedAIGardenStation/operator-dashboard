@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.gardenstation.app',
-  appName: 'GardenStation',
+  appId: 'com.gardenstation.operator',
+  appName: 'Garden Station',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

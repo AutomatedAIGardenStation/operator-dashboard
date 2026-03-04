@@ -38,6 +38,9 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      - name: Check dist directory
+        run: ls -la dist/
+
       - name: Set up Java 17 for Android
         uses: actions/setup-java@v4
         with:
