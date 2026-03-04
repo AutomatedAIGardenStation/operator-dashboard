@@ -19,6 +19,7 @@ import { ControlsPage } from './components/Controls/ControlsPage';
 import { PlantsPage } from './components/Plants/PlantsPage';
 import { SettingsPage } from './components/Settings/SettingsPage';
 import { LoginPage } from './components/Auth/LoginPage';
+import { RequireAuth } from './components/Auth/RequireAuth';
 import { HarvestQueuePage } from './components/Harvest/HarvestQueuePage';
 import { useWebSocket } from './hooks/useWebSocket';
 import { usePushNotifications } from './hooks/usePushNotifications';
@@ -38,18 +39,22 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter>
-        <IonTabs>
-          <IonRouterOutlet>
-            <Route exact path="/dashboard" component={DashboardPage} />
-            <Route exact path="/monitoring" component={MonitoringPage} />
-            <Route exact path="/controls" component={ControlsPage} />
-            <Route exact path="/plants" component={PlantsPage} />
-            <Route exact path="/settings" component={SettingsPage} />
-            <Route exact path="/harvest" component={HarvestQueuePage} />
-            <Route exact path="/login" component={LoginPage} />
-            <Redirect exact from="/" to="/dashboard" />
-          </IonRouterOutlet>
-          <IonTabBar slot="bottom">
+        <IonRouterOutlet>
+          <Route exact path="/login" component={LoginPage} />
+          <Route exact path="/">
+            <Redirect to="/dashboard" />
+          </Route>
+          <Route path="/(dashboard|monitoring|controls|plants|settings|harvest)">
+            <IonTabs>
+              <IonRouterOutlet>
+                <RequireAuth exact path="/dashboard" component={DashboardPage} />
+                <RequireAuth exact path="/monitoring" component={MonitoringPage} />
+                <RequireAuth exact path="/controls" component={ControlsPage} />
+                <RequireAuth exact path="/plants" component={PlantsPage} />
+                <RequireAuth exact path="/settings" component={SettingsPage} />
+                <RequireAuth exact path="/harvest" component={HarvestQueuePage} />
+              </IonRouterOutlet>
+              <IonTabBar slot="bottom">
             <IonTabButton tab="dashboard" href="/dashboard">
               <IonIcon icon={home} />
               <IonLabel>Dashboard</IonLabel>
@@ -71,7 +76,9 @@ const App: React.FC = () => {
               <IonLabel>Settings</IonLabel>
             </IonTabButton>
           </IonTabBar>
-        </IonTabs>
+            </IonTabs>
+          </Route>
+        </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>
   );

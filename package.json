@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^6.0.0",
+    "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^6.0.0",
     "@capacitor/camera": "^6.0.0",
     "@capacitor/core": "^6.2.0",
@@ -28,13 +29,13 @@
     "@ionic/react": "^8.5.5",
     "@ionic/react-router": "^8.5.5",
     "@types/react-router-dom": "^5.3.3",
-    "axios": "^1.7.9",
+    "axios": "^1.13.6",
     "ionicons": "^7.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^5.3.4",
     "recharts": "^3.7.0",
-    "socket.io-client": "^4.8.1",
+    "socket.io-client": "^4.8.3",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
