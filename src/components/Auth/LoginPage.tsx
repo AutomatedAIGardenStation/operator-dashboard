@@ -10,7 +10,6 @@ import {
   IonCardTitle,
   IonCardContent,
   IonItem,
-  IonLabel,
   IonInput,
   IonButton,
 } from '@ionic/react';
@@ -30,12 +29,10 @@ export const LoginPage: React.FC = () => {
           </IonCardHeader>
           <IonCardContent>
             <IonItem>
-              <IonLabel position="floating">Email</IonLabel>
-              <IonInput type="email" disabled />
+              <IonInput id="email" label="Email" labelPlacement="floating" type="email" disabled />
             </IonItem>
             <IonItem>
-              <IonLabel position="floating">Password</IonLabel>
-              <IonInput type="password" disabled />
+              <IonInput id="password" label="Password" labelPlacement="floating" type="password" disabled />
             </IonItem>
             <IonButton expand="block" className="ion-margin-top" disabled>
               Sign In
