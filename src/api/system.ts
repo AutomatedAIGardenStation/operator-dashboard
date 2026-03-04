@@ -1,5 +1,5 @@
 import apiClient from "./client";
-import type { RebootResponse, SystemConfig, SystemStatus } from "./types";
+import type { RebootResponse, SystemConfig, SystemStatus, ThresholdConfig } from "./types";
 
 export async function getStatus(): Promise<SystemStatus> {
   const { data } = await apiClient.get<SystemStatus>("/system/status");
@@ -13,6 +13,10 @@ export async function getConfig(): Promise<SystemConfig> {
 
 export async function updateConfig(config: SystemConfig): Promise<void> {
   await apiClient.post("/system/config", config);
+}
+
+export async function updateThresholds(thresholds: ThresholdConfig): Promise<void> {
+  await apiClient.put("/config/thresholds", thresholds);
 }
 
 export async function reboot(): Promise<RebootResponse> {

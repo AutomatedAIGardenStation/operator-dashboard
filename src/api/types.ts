@@ -330,6 +330,13 @@ export interface SystemConfig {
   };
 }
 
+export interface ThresholdConfig {
+  temp_max?: string;
+  temp_min?: string;
+  moisture_low?: string;
+  ec_high?: string;
+}
+
 export interface RebootResponse {
   message: string;
   scheduled_at: string;
