@@ -25,7 +25,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Type-check (tsc --noEmit)
         run: npx tsc --noEmit
@@ -48,7 +48,7 @@ jobs:
 
   # ── Notify ci-cd repo ──────────────────────────────────────────────────────
   notify-ci-cd:
-    name: Notify GardenStation-ci-cd
+    name: Notify pipeline-orchestrator
     runs-on: ubuntu-latest
     needs: ci
     if: always()
