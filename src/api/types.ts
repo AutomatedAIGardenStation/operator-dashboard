@@ -57,6 +57,15 @@ export interface SensorHistoryResponse {
   count: number;
 }
 
+export interface SensorHistory {
+  timestamp: string;
+  temp: number;
+  humidity: number;
+  ph: number;
+  ec: number;
+  soil_moisture: number;
+}
+
 export interface SensorHistoryParams {
   start_time?: string;
   end_time?: string;

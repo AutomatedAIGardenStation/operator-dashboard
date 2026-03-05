@@ -1,6 +1,7 @@
 import apiClient from "./axios";
 import type {
   Sensor,
+  SensorHistory,
   SensorHistoryParams,
   SensorHistoryResponse,
   SensorListParams,
@@ -24,6 +25,17 @@ export async function getSensorHistory(
   const { data } = await apiClient.get<SensorHistoryResponse>(
     `/sensors/${sensorId}/history`,
     { params },
+  );
+  return data;
+}
+
+export async function getHistory(
+  zone: number,
+  range: string,
+): Promise<SensorHistory[]> {
+  const { data } = await apiClient.get<SensorHistory[]>(
+    `/sensors`,
+    { params: { zone, history: range } },
   );
   return data;
 }
