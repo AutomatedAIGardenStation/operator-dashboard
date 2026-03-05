@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, type Token, type ActionPerformed } from '@capacitor/push-notifications';
-import api from '../api/client';
+import api from '../api/axios';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 

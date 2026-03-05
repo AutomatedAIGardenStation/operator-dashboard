@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient from "./axios";
 import type { InferenceRequest, InferenceResponse, MLModelsResponse } from "./types";
 
 export async function runInference(request: InferenceRequest): Promise<InferenceResponse> {

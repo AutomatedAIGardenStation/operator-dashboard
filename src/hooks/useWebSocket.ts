@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { create } from 'zustand';
-import { getAccessToken } from '../api/client';
+import { useAuthStore } from '../store/authStore';
 
 // ── WebSocket event types matching the backend protocol ─────────────────────
 
@@ -74,7 +74,7 @@ export function useWebSocket(): void {
 
     const { setConnected, setReconnecting, setError } = useWsState.getState();
 
-    const token = getAccessToken();
+    const token = useAuthStore.getState().token;
 
     const socket = io(WS_URL, {
       auth: { token },
@@ -105,7 +105,7 @@ export function useWebSocket(): void {
       setConnected(false);
       if (reason === 'io server disconnect') {
         // Server forced the disconnect – try reconnecting after refreshing auth.
-        const freshToken = getAccessToken();
+        const freshToken = useAuthStore.getState().token;
         if (freshToken) {
           socket.auth = { token: freshToken };
           socket.connect();
@@ -115,7 +115,7 @@ export function useWebSocket(): void {
 
     socket.on('reconnect_attempt', () => {
       setReconnecting(true);
-      const freshToken = getAccessToken();
+      const freshToken = useAuthStore.getState().token;
       if (freshToken) {
         socket.auth = { token: freshToken };
       }

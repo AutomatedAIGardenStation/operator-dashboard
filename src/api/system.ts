@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient from "./axios";
 import type { RebootResponse, SystemConfig, SystemStatus, ThresholdConfig } from "./types";
 
 export async function getStatus(): Promise<SystemStatus> {
