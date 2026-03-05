@@ -284,7 +284,7 @@ export interface HarvestJob {
   created_at: string;
 }
 
-export interface HarvestTask extends HarvestJob {}
+export type HarvestTask = HarvestJob;
 
 export interface HarvestQueueResponse {
   tasks: HarvestJob[];
