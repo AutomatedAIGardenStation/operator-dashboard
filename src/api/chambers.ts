@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient from "./axios";
 import type { Chamber, ChamberListResponse } from "./types";
 
 export async function getChambers(): Promise<ChamberListResponse> {
