@@ -23,3 +23,7 @@ export async function updateTask(
 ): Promise<void> {
   await apiClient.patch(`/harvest/queue/${taskId}`, updates);
 }
+
+export async function triggerHarvest(jobId: string): Promise<void> {
+  await apiClient.post(`/harvest/${jobId}/trigger`);
+}
