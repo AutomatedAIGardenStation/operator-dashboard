@@ -1,94 +1,83 @@
 import { create } from 'zustand';
+import { io, Socket } from 'socket.io-client';
 
-export interface SensorLocation {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export type SensorType =
-  | 'soil_moisture'
-  | 'temperature'
-  | 'humidity'
-  | 'light'
-  | 'ph'
-  | 'ec';
-
-export type SensorStatus = 'active' | 'inactive' | 'error' | 'calibrating';
-
-export interface Sensor {
-  id: number;
-  name: string;
-  type: SensorType;
-  chamber_id: number;
-  current_value: number;
-  unit: string;
-  status: SensorStatus;
-  last_reading: string;
-  location?: SensorLocation;
-}
-
-export interface SensorReading {
-  timestamp: string;
-  value: number;
-  quality: 'good' | 'suspect' | 'bad';
+export interface SensorReadings {
+  temp: number;
+  humidity: number;
+  ph: number;
+  ec: number;
+  soil_moisture: number[];
+  tank_level_pct: number;
+  actuator_status: Record<string, boolean>;
 }
 
 interface SensorState {
-  sensors: Map<number, Sensor>;
-  loading: boolean;
-  error: string | null;
+  readings: SensorReadings | null;
+  lastUpdated: Date | null;
+  connected: boolean;
 
-  setSensors: (sensors: Sensor[]) => void;
-  updateSensor: (id: number, data: Partial<Sensor>) => void;
-  updateSensorValue: (id: number, value: number, timestamp: string) => void;
-  removeSensor: (id: number) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
+  connect: () => void;
+  disconnect: () => void;
 }
 
+let socket: Socket | null = null;
+
 export const useSensorStore = create<SensorState>()((set) => ({
-  sensors: new Map(),
-  loading: false,
-  error: null,
+  readings: null,
+  lastUpdated: null,
+  connected: false,
 
-  setSensors: (sensors) =>
-    set({
-      sensors: new Map(sensors.map((s) => [s.id, s])),
-      loading: false,
-      error: null,
-    }),
+  connect: () => {
+    if (socket) return;
 
-  updateSensor: (id, data) =>
-    set((state) => {
-      const existing = state.sensors.get(id);
-      if (!existing) return state;
-      const updated = new Map(state.sensors);
-      updated.set(id, { ...existing, ...data });
-      return { sensors: updated };
-    }),
+    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
+    socket = io(wsUrl, {
+      transports: ['websocket'],
+    });
 
-  updateSensorValue: (id, value, timestamp) =>
-    set((state) => {
-      const existing = state.sensors.get(id);
-      if (!existing) return state;
-      const updated = new Map(state.sensors);
-      updated.set(id, {
-        ...existing,
-        current_value: value,
-        last_reading: timestamp,
-      });
-      return { sensors: updated };
-    }),
+    socket.on('connect', () => {
+      set({ connected: true });
+    });
 
-  removeSensor: (id) =>
-    set((state) => {
-      const updated = new Map(state.sensors);
-      updated.delete(id);
-      return { sensors: updated };
-    }),
+    socket.on('disconnect', () => {
+      set({ connected: false });
+    });
 
-  setLoading: (loading) => set({ loading }),
+    socket.on('sensor_update', (data: Partial<SensorReadings>) => {
+      set((state) => ({
+        readings: {
+          ...state.readings,
+          ...data,
+          // ensure arrays and objects are merged properly if needed, but for now just spread
+          soil_moisture: data.soil_moisture || state.readings?.soil_moisture || [],
+          actuator_status: {
+            ...(state.readings?.actuator_status || {}),
+            ...(data.actuator_status || {}),
+          },
+        } as SensorReadings,
+        lastUpdated: new Date(),
+      }));
+    });
 
-  setError: (error) => set({ error, loading: false }),
+    socket.on('actuator_update', (data: Record<string, boolean>) => {
+      set((state) => ({
+        readings: {
+          ...state.readings,
+          actuator_status: {
+            ...(state.readings?.actuator_status || {}),
+            ...data,
+          },
+        } as SensorReadings,
+        lastUpdated: new Date(),
+      }));
+    });
+  },
+
+  disconnect: () => {
+    if (socket) {
+      socket.disconnect();
+      socket = null;
+    }
+    set({ connected: false });
+  },
 }));
