@@ -29,6 +29,22 @@ export async function activateActuator(
   return data;
 }
 
+export async function waterStart(zone: number): Promise<void> {
+  await apiClient.post("/actuators/water/start", { zone });
+}
+
+export async function waterStopAll(): Promise<void> {
+  await apiClient.post("/actuators/water/stop");
+}
+
+export async function setLight(ch: number, pct: number): Promise<void> {
+  await apiClient.put("/actuators/light", { ch, pct });
+}
+
+export async function setFan(pct: number): Promise<void> {
+  await apiClient.put("/actuators/fan", { pct });
+}
+
 export async function deactivateActuator(actuatorId: number): Promise<void> {
   await apiClient.post(`/actuators/${actuatorId}/deactivate`);
 }
