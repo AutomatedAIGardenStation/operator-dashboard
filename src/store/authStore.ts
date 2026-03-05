@@ -91,7 +91,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   logout: async () => {
     try {
       await apiLogout();
-    } catch (e) {
+    } catch {
       // Ignore network errors on logout
     } finally {
       await clearTokens();
