@@ -149,9 +149,14 @@ export interface Plant {
   id: number;
   name: string;
   species: string;
-  variety: string;
-  chamber_id: number;
-  location: {
+  zone: string;
+  moisture_target: number;
+  ec_target: number;
+  ph_min: number;
+  ph_max: number;
+  variety?: string;
+  chamber_id?: number;
+  location?: {
     module_id: number;
     position: SensorLocation;
   };
@@ -183,9 +188,14 @@ export interface PlantListParams {
 export interface CreatePlantRequest {
   name: string;
   species: string;
-  variety: string;
-  chamber_id: number;
-  location: {
+  zone: string;
+  moisture_target: number;
+  ec_target: number;
+  ph_min: number;
+  ph_max: number;
+  variety?: string;
+  chamber_id?: number;
+  location?: {
     module_id: number;
     position: SensorLocation;
   };
@@ -264,17 +274,20 @@ export interface MLModelsResponse {
 
 // ── Harvest ──
 
-export interface HarvestTask {
-  task_id: string;
+export interface HarvestJob {
+  id: string;
   plant_id: number;
   status: string;
-  priority: string;
-  scheduled_at: string;
+  confidence: number;
+  priority?: string;
+  scheduled_at?: string;
   created_at: string;
 }
 
+export interface HarvestTask extends HarvestJob {}
+
 export interface HarvestQueueResponse {
-  tasks: HarvestTask[];
+  tasks: HarvestJob[];
   total: number;
 }
 

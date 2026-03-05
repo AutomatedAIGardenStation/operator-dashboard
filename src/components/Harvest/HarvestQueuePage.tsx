@@ -1,67 +1,106 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   IonPage,
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
   IonList,
   IonItem,
   IonLabel,
   IonBadge,
   IonButton,
-  IonIcon,
+  IonProgressBar,
+  IonSpinner,
+  IonText,
+  useIonToast
 } from '@ionic/react';
-import { add } from 'ionicons/icons';
+import { usePlantsStore } from '../../store/plantsStore';
 
 export const HarvestQueuePage: React.FC = () => {
+  const { harvestQueue, plants, loading, error, fetchHarvestQueue, triggerHarvest, fetchPlants } = usePlantsStore();
+  const [presentToast] = useIonToast();
+
+  useEffect(() => {
+    fetchPlants();
+    fetchHarvestQueue();
+  }, [fetchPlants, fetchHarvestQueue]);
+
+  const handleTrigger = async (id: string) => {
+    try {
+      await triggerHarvest(id);
+      presentToast({
+        message: 'Harvest triggered successfully',
+        duration: 2000,
+        color: 'success',
+      });
+    } catch (err: any) {
+      presentToast({
+        message: `Failed to trigger harvest: ${err.message}`,
+        duration: 3000,
+        color: 'danger',
+      });
+    }
+  };
+
+  const getPlantName = (plantId: number) => {
+    const plant = plants.find((p) => p.id === plantId);
+    return plant ? plant.name : `Plant #${plantId}`;
+  };
+
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonTitle>Harvest Queue</IonTitle>
-          <IonButton slot="end" fill="clear">
-            <IonIcon icon={add} />
-          </IonButton>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        <IonCard>
-          <IonCardHeader>
-            <IonCardTitle>Pending Jobs</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <IonList>
-              <IonItem>
+        {loading && harvestQueue.length === 0 ? (
+          <div className="ion-text-center ion-padding">
+            <IonSpinner name="crescent" />
+          </div>
+        ) : error ? (
+          <div className="ion-text-center ion-padding">
+            <IonText color="danger">{error}</IonText>
+          </div>
+        ) : harvestQueue.length === 0 ? (
+          <div className="ion-text-center ion-padding">
+            <IonText color="medium">No harvest jobs in the queue.</IonText>
+          </div>
+        ) : (
+          <IonList>
+            {harvestQueue.map((job) => (
+              <IonItem key={job.id}>
                 <IonLabel>
-                  <h2>Tomatoes - Chamber A</h2>
-                  <p>Scheduled harvest pending</p>
+                  <h2>{getPlantName(job.plant_id)}</h2>
+                  <p>Status: {job.status}</p>
+                  <p>
+                    Confidence: {(job.confidence * 100).toFixed(0)}%
+                  </p>
+                  <IonProgressBar
+                    value={job.confidence}
+                    color={job.confidence > 0.8 ? 'success' : 'warning'}
+                  />
                 </IonLabel>
-                <IonBadge color="warning" slot="end">Pending</IonBadge>
+                <div slot="end" className="ion-text-right">
+                  <IonBadge color={job.status === 'ready' ? 'success' : 'medium'} className="ion-margin-bottom">
+                    {job.status}
+                  </IonBadge>
+                  <br />
+                  <IonButton
+                    size="small"
+                    onClick={() => handleTrigger(job.id)}
+                    disabled={loading || job.status !== 'ready'}
+                    data-testid="trigger-harvest-button"
+                  >
+                    Trigger Harvest
+                  </IonButton>
+                </div>
               </IonItem>
-              <IonItem>
-                <IonLabel>
-                  <h2>Lettuce - Chamber B</h2>
-                  <p>Ready for harvest</p>
-                </IonLabel>
-                <IonBadge color="success" slot="end">Ready</IonBadge>
-              </IonItem>
-            </IonList>
-          </IonCardContent>
-        </IonCard>
-
-        <IonCard>
-          <IonCardHeader>
-            <IonCardTitle>Completed</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <p>Harvest history will be displayed here.</p>
-          </IonCardContent>
-        </IonCard>
+            ))}
+          </IonList>
+        )}
       </IonContent>
     </IonPage>
   );
