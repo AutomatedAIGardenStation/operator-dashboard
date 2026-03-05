@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ControlsPage } from './ControlsPage';
@@ -46,7 +45,7 @@ describe('ControlsPage', () => {
 
     // Get the first range input (Channel 1)
     // Ionic ranges can be tricky, but we can target the element
-    const channel1Range = document.querySelectorAll('ion-range')[0];
+    const channel1Range = document.querySelectorAll('ion-range')[0] as HTMLIonRangeElement;
 
     // Fire multiple change events
     fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 10 } }));
