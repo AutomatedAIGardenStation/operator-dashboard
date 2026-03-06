@@ -4,6 +4,7 @@ import { login as apiLogin, refresh as apiRefresh, logout as apiLogout } from '.
 import type { LoginRequest } from '../api/types';
 import { getCapabilities } from '../api/system';
 import { useCapabilitiesStore } from './capabilitiesStore';
+import { jwtDecode } from 'jwt-decode';
 
 export interface User {
   id: string;
@@ -40,10 +41,32 @@ async function clearTokens() {
   await Preferences.remove({ key: REFRESH_KEY });
 }
 
-// Temporary user parsing for demonstration (assuming JWT holds user info or returning a dummy user)
-// In a real app, user info comes from the backend or the decoded JWT
-const parseUserFromToken = (_token: string): User => {
-  return { id: '1', email: 'user@example.com', role: 'admin' };
+interface CustomJwtPayload {
+  sub?: string;
+  id?: string;
+  email?: string;
+  role?: string;
+}
+
+// Parse user from JWT token
+const parseUserFromToken = (token: string): User | null => {
+  try {
+    const decoded = jwtDecode<CustomJwtPayload>(token);
+
+    if (!decoded.email || !decoded.role) {
+      console.warn('JWT missing required user fields');
+      return null;
+    }
+
+    return {
+      id: String(decoded.id || decoded.sub),
+      email: decoded.email,
+      role: decoded.role,
+    };
+  } catch (_error) {
+    console.warn('Failed to parse JWT token');
+    return null;
+  }
 };
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
