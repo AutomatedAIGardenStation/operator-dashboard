@@ -21,6 +21,7 @@ import { Preferences } from '@capacitor/preferences';
 import pkg from '../../../package.json';
 import { updateThresholds } from '../../api/system';
 import { ThresholdConfig } from '../../api/types';
+import { useCapability } from '../../store/capabilitiesStore';
 
 export const SettingsPage: React.FC = () => {
   const [presentToast] = useIonToast();
@@ -64,6 +65,8 @@ export const SettingsPage: React.FC = () => {
   const handleThresholdChange = (key: keyof ThresholdConfig, value: string) => {
     setThresholds((prev) => ({ ...prev, [key]: value }));
   };
+
+  const hasUpdateConfig = useCapability('PUT /system/config');
 
   const saveThresholds = async () => {
     try {
@@ -132,56 +135,58 @@ export const SettingsPage: React.FC = () => {
           </IonItemGroup>
 
           {/* Thresholds Section */}
-          <IonItemGroup>
-            <IonItemDivider>
-              <IonLabel>Sensor Thresholds</IonLabel>
-            </IonItemDivider>
-            <IonItem>
-              <IonInput
-                id="temp_max"
-                label="Max Temperature"
-                labelPlacement="stacked"
-                type="number"
-                value={thresholds.temp_max}
-                onIonInput={(e) => handleThresholdChange('temp_max', e.detail.value!)}
-              />
-            </IonItem>
-            <IonItem>
-              <IonInput
-                id="temp_min"
-                label="Min Temperature"
-                labelPlacement="stacked"
-                type="number"
-                value={thresholds.temp_min}
-                onIonInput={(e) => handleThresholdChange('temp_min', e.detail.value!)}
-              />
-            </IonItem>
-            <IonItem>
-              <IonInput
-                id="moisture_low"
-                label="Low Moisture"
-                labelPlacement="stacked"
-                type="number"
-                value={thresholds.moisture_low}
-                onIonInput={(e) => handleThresholdChange('moisture_low', e.detail.value!)}
-              />
-            </IonItem>
-            <IonItem>
-              <IonInput
-                id="ec_high"
-                label="High EC"
-                labelPlacement="stacked"
-                type="number"
-                value={thresholds.ec_high}
-                onIonInput={(e) => handleThresholdChange('ec_high', e.detail.value!)}
-              />
-            </IonItem>
-            <IonItem>
-              <IonButton expand="block" onClick={saveThresholds} style={{ width: '100%' }}>
-                Save Thresholds
-              </IonButton>
-            </IonItem>
-          </IonItemGroup>
+          {hasUpdateConfig && (
+            <IonItemGroup>
+              <IonItemDivider>
+                <IonLabel>Sensor Thresholds</IonLabel>
+              </IonItemDivider>
+              <IonItem>
+                <IonInput
+                  id="temp_max"
+                  label="Max Temperature"
+                  labelPlacement="stacked"
+                  type="number"
+                  value={thresholds.temp_max}
+                  onIonInput={(e) => handleThresholdChange('temp_max', e.detail.value!)}
+                />
+              </IonItem>
+              <IonItem>
+                <IonInput
+                  id="temp_min"
+                  label="Min Temperature"
+                  labelPlacement="stacked"
+                  type="number"
+                  value={thresholds.temp_min}
+                  onIonInput={(e) => handleThresholdChange('temp_min', e.detail.value!)}
+                />
+              </IonItem>
+              <IonItem>
+                <IonInput
+                  id="moisture_low"
+                  label="Low Moisture"
+                  labelPlacement="stacked"
+                  type="number"
+                  value={thresholds.moisture_low}
+                  onIonInput={(e) => handleThresholdChange('moisture_low', e.detail.value!)}
+                />
+              </IonItem>
+              <IonItem>
+                <IonInput
+                  id="ec_high"
+                  label="High EC"
+                  labelPlacement="stacked"
+                  type="number"
+                  value={thresholds.ec_high}
+                  onIonInput={(e) => handleThresholdChange('ec_high', e.detail.value!)}
+                />
+              </IonItem>
+              <IonItem>
+                <IonButton expand="block" onClick={saveThresholds} style={{ width: '100%' }}>
+                  Save Thresholds
+                </IonButton>
+              </IonItem>
+            </IonItemGroup>
+          )}
 
           {/* Display Section (existing, kept disabled as requested/present originally) */}
           <IonItemGroup>

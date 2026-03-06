@@ -22,6 +22,7 @@ import {
 import { add, close } from 'ionicons/icons';
 import { usePlantsStore } from '../../store/plantsStore';
 import { Plant, CreatePlantRequest, UpdatePlantRequest } from '../../api/types';
+import { useCapability } from '../../store/capabilitiesStore';
 
 export const PlantsPage: React.FC = () => {
   const { plants, loading, error, fetchPlants, createPlant, updatePlant } = usePlantsStore();
@@ -38,6 +39,9 @@ export const PlantsPage: React.FC = () => {
     ph_min: 0,
     ph_max: 0,
   });
+
+  const hasCreatePlant = useCapability('POST /plants');
+  const hasUpdatePlant = useCapability('PUT /plants/:id');
 
   useEffect(() => {
     fetchPlants();
@@ -119,9 +123,11 @@ export const PlantsPage: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle>Plants</IonTitle>
-          <IonButton slot="end" fill="clear" onClick={() => openModal()} data-testid="add-plant-button">
-            <IonIcon icon={add} />
-          </IonButton>
+          {hasCreatePlant && (
+            <IonButton slot="end" fill="clear" onClick={() => openModal()} data-testid="add-plant-button">
+              <IonIcon icon={add} />
+            </IonButton>
+          )}
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
@@ -140,7 +146,7 @@ export const PlantsPage: React.FC = () => {
         ) : (
           <IonList>
             {plants.map((plant) => (
-              <IonItem button key={plant.id} onClick={() => openModal(plant)}>
+              <IonItem button={hasUpdatePlant} key={plant.id} onClick={() => hasUpdatePlant ? openModal(plant) : undefined}>
                 <IonLabel>
                   <h2>{plant.name}</h2>
                   <p>{plant.species}</p>

@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { Preferences } from '@capacitor/preferences';
 import { login as apiLogin, refresh as apiRefresh, logout as apiLogout } from '../api/auth';
 import type { LoginRequest } from '../api/types';
+import { getCapabilities } from '../api/system';
+import { useCapabilitiesStore } from './capabilitiesStore';
 
 export interface User {
   id: string;
@@ -71,6 +73,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         user: parseUserFromToken(token),
         isAuthenticated: true,
       });
+
+      // Fetch capabilities after restoring session
+      getCapabilities()
+        .then(caps => useCapabilitiesStore.getState().initCapabilities(caps))
+        .catch(err => console.error('Failed to init capabilities on load', err));
     }
   },
 
@@ -86,6 +93,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       user: parseUserFromToken(access_token),
       isAuthenticated: true,
     });
+
+    // Fetch capabilities after fresh login
+    try {
+      const caps = await getCapabilities();
+      useCapabilitiesStore.getState().initCapabilities(caps);
+    } catch (err) {
+      console.error('Failed to fetch capabilities on login', err);
+    }
   },
 
   logout: async () => {
@@ -103,6 +118,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       });
       // Fire an event if needed by websocket
       window.dispatchEvent(new Event('gs:session-expired'));
+      // Clear capability cache on logout
+      window.dispatchEvent(new Event('gs:capabilities-reset'));
     }
   },
 

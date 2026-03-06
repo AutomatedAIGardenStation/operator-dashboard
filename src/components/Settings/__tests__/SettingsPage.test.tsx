@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
 import { SettingsPage } from '../SettingsPage';
 import { updateThresholds } from '../../../api/system';
+import { useCapability } from '../../../store/capabilitiesStore';
 
 vi.mock('@capacitor/preferences', () => ({
   Preferences: {
@@ -14,6 +15,10 @@ vi.mock('@capacitor/preferences', () => ({
 
 vi.mock('../../../api/system', () => ({
   updateThresholds: vi.fn(),
+}));
+
+vi.mock('../../../store/capabilitiesStore', () => ({
+  useCapability: vi.fn(),
 }));
 
 vi.mock('@ionic/react', async () => {
@@ -28,6 +33,7 @@ describe('SettingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (Preferences.get as any).mockResolvedValue({ value: 'false' });
+    (useCapability as any).mockReturnValue(true);
   });
 
   it('renders and persists notification toggles via Capacitor Preferences', async () => {
