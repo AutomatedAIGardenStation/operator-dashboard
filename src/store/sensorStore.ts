@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { getSocket } from '../hooks/useWebSocket';
+import { getSocket, type ActuatorStatusEvent } from '../hooks/useWebSocket';
+import { useActuatorStore } from './actuatorStore';
 
 export interface SensorReadings {
   temp: number;
@@ -24,7 +25,7 @@ interface SensorState {
 let handleConnect: (() => void) | null = null;
 let handleDisconnect: (() => void) | null = null;
 let handleSensorUpdate: ((data: Partial<SensorReadings>) => void) | null = null;
-let handleActuatorUpdate: ((data: Record<string, boolean>) => void) | null = null;
+let handleActuatorUpdate: ((raw: string | ActuatorStatusEvent) => void) | null = null;
 
 export const useSensorStore = create<SensorState>()((set) => ({
   readings: null,
@@ -62,13 +63,18 @@ export const useSensorStore = create<SensorState>()((set) => ({
       }));
     };
 
-    handleActuatorUpdate = (data: Record<string, boolean>) => {
+    handleActuatorUpdate = (raw: string | ActuatorStatusEvent) => {
+      const payload: ActuatorStatusEvent =
+        typeof raw === 'string' ? (JSON.parse(raw) as { data: ActuatorStatusEvent }).data : raw;
+
+      const actuatorName = useActuatorStore.getState().actuators.get(payload.actuator_id)?.name || `actuator_${payload.actuator_id}`;
+
       set((state) => ({
         readings: {
           ...state.readings,
           actuator_status: {
             ...(state.readings?.actuator_status || {}),
-            ...data,
+            [actuatorName]: payload.status === 'running' || payload.status === 'active',
           },
         } as SensorReadings,
         lastUpdated: new Date(),

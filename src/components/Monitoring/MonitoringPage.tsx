@@ -17,11 +17,15 @@ import { useMonitoringStore } from '../../store/monitoringStore';
 import { SensorChart } from './SensorChart';
 
 export const MonitoringPage: React.FC = () => {
-  const { zone, range, history, loading, setZone, setRange, fetchHistory } = useMonitoringStore();
+  const { zone, range, history, loading, setZone, setRange, fetchHistory, connect, disconnect } = useMonitoringStore();
 
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]);
+    connect();
+    return () => {
+      disconnect();
+    };
+  }, [fetchHistory, connect, disconnect]);
 
   const handleZoneChange = (e: CustomEvent) => {
     setZone(e.detail.value);

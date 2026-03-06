@@ -39,6 +39,8 @@ export interface Actuator {
   task?: ActuatorTask;
 }
 
+import { getSocket, type ActuatorStatusEvent } from '../hooks/useWebSocket';
+
 interface ActuatorStoreState {
   actuators: Map<number, Actuator>;
   loading: boolean;
@@ -54,7 +56,11 @@ interface ActuatorStoreState {
   removeActuator: (id: number) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  connect: () => void;
+  disconnect: () => void;
 }
+
+let handleActuatorUpdate: ((raw: string | ActuatorStatusEvent) => void) | null = null;
 
 export const useActuatorStore = create<ActuatorStoreState>()((set) => ({
   actuators: new Map(),
@@ -96,4 +102,39 @@ export const useActuatorStore = create<ActuatorStoreState>()((set) => ({
   setLoading: (loading) => set({ loading }),
 
   setError: (error) => set({ error, loading: false }),
+
+  connect: () => {
+    if (handleActuatorUpdate !== null) return;
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    handleActuatorUpdate = (raw: string | ActuatorStatusEvent) => {
+      const payload: ActuatorStatusEvent =
+        typeof raw === 'string' ? (JSON.parse(raw) as { data: ActuatorStatusEvent }).data : raw;
+
+      set((state) => {
+        const existing = state.actuators.get(payload.actuator_id);
+        if (!existing) return state;
+
+        const updated = new Map(state.actuators);
+        updated.set(payload.actuator_id, {
+          ...existing,
+          status: payload.status as ActuatorStatus,
+        });
+
+        return { actuators: updated };
+      });
+    };
+
+    socket.on('actuator.update', handleActuatorUpdate);
+  },
+
+  disconnect: () => {
+    const socket = getSocket();
+    if (socket && handleActuatorUpdate) {
+      socket.off('actuator.update', handleActuatorUpdate);
+    }
+    handleActuatorUpdate = null;
+  },
 }));

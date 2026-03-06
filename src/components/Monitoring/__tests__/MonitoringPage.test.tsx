@@ -23,11 +23,15 @@ describe('MonitoringPage', () => {
   let mockSetZone: ReturnType<typeof vi.fn>;
   let mockSetRange: ReturnType<typeof vi.fn>;
   let mockFetchHistory: ReturnType<typeof vi.fn>;
+  let mockConnect: ReturnType<typeof vi.fn>;
+  let mockDisconnect: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockSetZone = vi.fn();
     mockSetRange = vi.fn();
     mockFetchHistory = vi.fn();
+    mockConnect = vi.fn();
+    mockDisconnect = vi.fn();
 
     // Reset window.matchMedia mock for Ionic
     Object.defineProperty(window, 'matchMedia', {
@@ -55,6 +59,8 @@ describe('MonitoringPage', () => {
       setZone: mockSetZone,
       setRange: mockSetRange,
       fetchHistory: mockFetchHistory,
+      connect: mockConnect,
+      disconnect: mockDisconnect,
     });
 
     render(<MonitoringPage />);
@@ -78,6 +84,8 @@ describe('MonitoringPage', () => {
       setZone: mockSetZone,
       setRange: mockSetRange,
       fetchHistory: mockFetchHistory,
+      connect: mockConnect,
+      disconnect: mockDisconnect,
     });
 
     const { container } = render(<MonitoringPage />);
@@ -99,6 +107,8 @@ describe('MonitoringPage', () => {
       setZone: mockSetZone,
       setRange: mockSetRange,
       fetchHistory: mockFetchHistory,
+      connect: mockConnect,
+      disconnect: mockDisconnect,
     });
 
     render(<MonitoringPage />);
