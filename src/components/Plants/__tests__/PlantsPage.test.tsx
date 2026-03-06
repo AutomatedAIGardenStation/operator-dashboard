@@ -7,6 +7,10 @@ import { useCapability } from '../../../store/capabilitiesStore';
 
 setupIonicReact();
 
+vi.mock('../../../api/gantry', () => ({
+  getGantryPosition: vi.fn().mockResolvedValue({ x: 0, y: 0, z: 0 }),
+}));
+
 vi.mock('../../../store/plantsStore', () => ({
   usePlantsStore: vi.fn(),
 }));

@@ -23,6 +23,7 @@ import { add, close } from 'ionicons/icons';
 import { usePlantsStore } from '../../store/plantsStore';
 import { Plant, CreatePlantRequest, UpdatePlantRequest } from '../../api/types';
 import { useCapability } from '../../store/capabilitiesStore';
+import { PlantGrid } from './PlantGrid';
 
 export const PlantsPage: React.FC = () => {
   const { plants, loading, error, fetchPlants, createPlant, updatePlant } = usePlantsStore();
@@ -131,6 +132,8 @@ export const PlantsPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
+        <PlantGrid />
+
         {loading && plants.length === 0 ? (
           <div className="ion-text-center ion-padding">
             <IonSpinner name="crescent" />
