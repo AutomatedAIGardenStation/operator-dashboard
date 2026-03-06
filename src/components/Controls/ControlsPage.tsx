@@ -20,9 +20,17 @@ import {
   IonToast,
 } from '@ionic/react';
 import * as actuators from '../../api/actuators';
+import { getStatus } from '../../api/system';
+import { getSocket } from '../../hooks/useWebSocket';
+import { GantryPanel } from './GantryPanel';
+import { ToolPanel } from './ToolPanel';
+import { ValvePanel } from './ValvePanel';
+import { DosingPanel } from './DosingPanel';
+import { PumpPanel } from './PumpPanel';
 
 export const ControlsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [systemState, setSystemState] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
 
@@ -107,14 +115,39 @@ export const ControlsPage: React.FC = () => {
 
   useEffect(() => {
     const timers = lightDebounceTimers.current;
+
+    const fetchStatus = async () => {
+      try {
+        const { status } = await getStatus();
+        setSystemState(status);
+      } catch (e) {
+        console.error('Failed to fetch initial system status', e);
+      }
+    };
+    void fetchStatus();
+
+    const socket = getSocket();
+    const handleSystemStatus = (data: { status: string }) => {
+      setSystemState(data.status);
+    };
+
+    if (socket) {
+      socket.on('system.status', handleSystemStatus);
+    }
+
     return () => {
       // Clear all timers on unmount
       Object.values(timers).forEach(clearTimeout);
       if (fanDebounceTimer.current) {
         clearTimeout(fanDebounceTimer.current);
       }
+      if (socket) {
+        socket.off('system.status', handleSystemStatus);
+      }
     };
   }, []);
+
+  const isControlsDisabled = systemState !== 'MANUAL_CONTROL' && systemState !== 'MONITORING';
 
   return (
     <IonPage>
@@ -148,10 +181,10 @@ export const ControlsPage: React.FC = () => {
               </IonSelect>
             </IonItem>
             <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
-              <IonButton expand="block" onClick={handleWaterStart} disabled={loading}>
+              <IonButton expand="block" onClick={handleWaterStart} disabled={isControlsDisabled || loading}>
                 Start
               </IonButton>
-              <IonButton expand="block" color="danger" onClick={handleWaterStopAll} disabled={loading}>
+              <IonButton expand="block" color="danger" onClick={handleWaterStopAll} disabled={isControlsDisabled || loading}>
                 Stop All
               </IonButton>
             </div>
@@ -172,6 +205,7 @@ export const ControlsPage: React.FC = () => {
                     max={100}
                     step={1}
                     value={pct}
+                    disabled={isControlsDisabled}
                     onIonChange={(e) => handleLightChange(index, e.detail.value as number)}
                   />
                 </IonItem>
@@ -192,11 +226,18 @@ export const ControlsPage: React.FC = () => {
                 max={100}
                 step={1}
                 value={fanSpeed}
+                disabled={isControlsDisabled}
                 onIonChange={(e) => handleFanChange(e.detail.value as number)}
               />
             </IonItem>
           </IonCardContent>
         </IonCard>
+
+        <GantryPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        <ToolPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        <ValvePanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        <DosingPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        <PumpPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
 
         <IonToast
           isOpen={!!toastMessage}

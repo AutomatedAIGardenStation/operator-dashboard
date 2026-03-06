@@ -54,7 +54,7 @@ export function getSocket(): Socket | null {
 }
 
 // Default channels the app subscribes to on connect.
-const DEFAULT_CHANNELS = ['sensors', 'actuators', 'system.status'];
+const DEFAULT_CHANNELS = ['sensors', 'actuators', 'system.status', 'gantry', 'tools'];
 
 // ── Hook ────────────────────────────────────────────────────────────────────
 

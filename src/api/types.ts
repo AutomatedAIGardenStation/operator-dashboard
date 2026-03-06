@@ -364,6 +364,43 @@ export interface RebootResponse {
   scheduled_at: string;
 }
 
+// ── Manual Control Overrides ──
+
+export interface GantryPosition {
+  x: number;
+  y: number;
+  z: number;
+  status?: string;
+}
+
+export interface GantryMoveRequest {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export type ToolType = 'CAMERA' | 'GRIPPER' | 'POLLINATOR' | 'SCISSORS' | 'NONE';
+
+export interface CurrentToolResponse {
+  tool_type: ToolType;
+}
+
+export interface ValveSetRequest {
+  valve_id: string;
+  state: boolean;
+}
+
+export interface DosingRecipeRequest {
+  nut_a_ms: number;
+  nut_b_ms: number;
+  ph_up_ms: number;
+  ph_down_ms: number;
+}
+
+export interface PumpRunRequest {
+  duration_ms: number;
+}
+
 // ── Common ──
 
 export interface ApiError {
