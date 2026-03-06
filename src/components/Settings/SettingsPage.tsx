@@ -23,6 +23,7 @@ import { updateThresholds } from '../../api/system';
 import { triggerContentSync } from '../../api/admin';
 import { ThresholdConfig } from '../../api/types';
 import { useCapability } from '../../store/capabilitiesStore';
+import { AdminContentModal } from './AdminContent/AdminContentModal';
 
 export const SettingsPage: React.FC = () => {
   const [presentToast] = useIonToast();
@@ -69,6 +70,8 @@ export const SettingsPage: React.FC = () => {
 
   const hasUpdateConfig = useCapability('PUT /system/config');
   const hasAdminContent = useCapability('POST /admin/content');
+
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
 
   const saveThresholds = async () => {
     try {
@@ -239,14 +242,26 @@ export const SettingsPage: React.FC = () => {
           </IonItemGroup>
 
           {/* Admin Section */}
-          {hasAdminContent && (
+          {(hasAdminContent || hasUpdateConfig) && (
             <IonItemGroup>
               <IonItemDivider>
                 <IonLabel>Admin</IonLabel>
               </IonItemDivider>
+              {hasAdminContent && (
+                <IonItem>
+                  <IonButton
+                    expand="block"
+                    onClick={() => setAdminModalOpen(true)}
+                    style={{ width: '100%' }}
+                  >
+                    Manage Posts
+                  </IonButton>
+                </IonItem>
+              )}
               <IonItem>
                 <IonButton
                   expand="block"
+                  color="medium"
                   onClick={async () => {
                     try {
                       await triggerContentSync();
@@ -272,6 +287,13 @@ export const SettingsPage: React.FC = () => {
             </IonItemGroup>
           )}
         </IonList>
+
+        {hasAdminContent && (
+          <AdminContentModal
+            isOpen={adminModalOpen}
+            onDidDismiss={() => setAdminModalOpen(false)}
+          />
+        )}
       </IonContent>
     </IonPage>
   );

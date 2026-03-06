@@ -401,6 +401,32 @@ export interface PumpRunRequest {
   duration_ms: number;
 }
 
+// ── Admin Content ──
+
+export interface AdminPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateAdminPostRequest {
+  title: string;
+  slug: string;
+  content: string;
+  status: 'draft' | 'published';
+}
+
+export interface UpdateAdminPostRequest {
+  title?: string;
+  slug?: string;
+  content?: string;
+  status?: 'draft' | 'published';
+}
+
 // ── Common ──
 
 export interface ApiError {
