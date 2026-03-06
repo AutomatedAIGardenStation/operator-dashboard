@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { getHistory } from '../api/sensors';
 import type { SensorHistory } from '../api/types';
+import { getSocket, type SensorUpdateEvent } from '../hooks/useWebSocket';
 
 interface MonitoringState {
   history: SensorHistory[];
@@ -12,7 +13,12 @@ interface MonitoringState {
   setZone: (zone: number) => void;
   setRange: (range: string) => void;
   fetchHistory: () => Promise<void>;
+  connect: () => void;
+  disconnect: () => void;
 }
+
+let handleSensorUpdate: ((raw: string | SensorUpdateEvent) => void) | null = null;
+let refetchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const useMonitoringStore = create<MonitoringState>()((set, get) => ({
   history: [],
@@ -39,6 +45,36 @@ export const useMonitoringStore = create<MonitoringState>()((set, get) => ({
       set({ history: data, loading: false });
     } catch (err: any) {
       set({ error: err.message || 'Failed to fetch history', loading: false });
+    }
+  },
+
+  connect: () => {
+    if (handleSensorUpdate !== null) return;
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    handleSensorUpdate = (_raw: string | SensorUpdateEvent) => {
+      if (refetchTimeout) return; // Throttle: ignore new events if a fetch is already scheduled
+
+      refetchTimeout = setTimeout(() => {
+        refetchTimeout = null;
+        void get().fetchHistory();
+      }, 5000);
+    };
+
+    socket.on('sensor.update', handleSensorUpdate);
+  },
+
+  disconnect: () => {
+    const socket = getSocket();
+    if (socket && handleSensorUpdate) {
+      socket.off('sensor.update', handleSensorUpdate);
+    }
+    handleSensorUpdate = null;
+    if (refetchTimeout) {
+      clearTimeout(refetchTimeout);
+      refetchTimeout = null;
     }
   },
 }));

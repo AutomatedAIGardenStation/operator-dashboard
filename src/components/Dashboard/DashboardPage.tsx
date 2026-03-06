@@ -18,18 +18,23 @@ import {
 } from '@ionic/react';
 import { warningOutline } from 'ionicons/icons';
 import { useSensorStore } from '../../store/sensorStore';
+import { useActuatorStore } from '../../store/actuatorStore';
 import { SensorCard } from './SensorCard';
 import { ActuatorBadge } from './ActuatorBadge';
 
 export const DashboardPage: React.FC = () => {
   const { connected, readings, lastUpdated, connect, disconnect } = useSensorStore();
+  const actuatorConnect = useActuatorStore(state => state.connect);
+  const actuatorDisconnect = useActuatorStore(state => state.disconnect);
 
   useEffect(() => {
     connect();
+    actuatorConnect();
     return () => {
       disconnect();
+      actuatorDisconnect();
     };
-  }, [connect, disconnect]);
+  }, [connect, disconnect, actuatorConnect, actuatorDisconnect]);
 
   return (
     <IonPage>

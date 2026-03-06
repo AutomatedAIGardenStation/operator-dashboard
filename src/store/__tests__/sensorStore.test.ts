@@ -107,7 +107,7 @@ describe('sensorStore', () => {
         ec: 1,
         soil_moisture: [],
         tank_level_pct: 100,
-        actuator_status: { pump1: true },
+        actuator_status: { actuator_1: true },
       }
     });
 
@@ -116,12 +116,12 @@ describe('sensorStore', () => {
     const actuatorUpdateHandler = mockOn.mock.calls.find(call => call[0] === 'actuator.update')?.[1];
 
     // Pump 2 turns on, Pump 1 stays on
-    actuatorUpdateHandler({ pump2: true });
+    actuatorUpdateHandler({ actuator_id: 2, status: 'running', progress: 50 });
 
     const state = useSensorStore.getState();
     expect(state.readings?.actuator_status).toEqual({
-      pump1: true,
-      pump2: true,
+      actuator_1: true,
+      actuator_2: true,
     });
   });
 
