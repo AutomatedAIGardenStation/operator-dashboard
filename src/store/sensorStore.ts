@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { io, Socket } from 'socket.io-client';
+import { getSocket } from '../hooks/useWebSocket';
 
 export interface SensorReadings {
   temp: number;
@@ -20,7 +20,11 @@ interface SensorState {
   disconnect: () => void;
 }
 
-let socket: Socket | null = null;
+// References to the handlers so we can remove them later
+let handleConnect: (() => void) | null = null;
+let handleDisconnect: (() => void) | null = null;
+let handleSensorUpdate: ((data: Partial<SensorReadings>) => void) | null = null;
+let handleActuatorUpdate: ((data: Record<string, boolean>) => void) | null = null;
 
 export const useSensorStore = create<SensorState>()((set) => ({
   readings: null,
@@ -28,22 +32,21 @@ export const useSensorStore = create<SensorState>()((set) => ({
   connected: false,
 
   connect: () => {
-    if (socket) return;
+    // If we've already attached our listeners, skip re-attaching
+    if (handleConnect !== null) return;
 
-    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
-    socket = io(wsUrl, {
-      transports: ['websocket'],
-    });
+    const socket = getSocket();
+    if (!socket) return;
 
-    socket.on('connect', () => {
+    // We update connected state when socket connects or if it's already connected
+    if (socket.connected) {
       set({ connected: true });
-    });
+    }
 
-    socket.on('disconnect', () => {
-      set({ connected: false });
-    });
+    handleConnect = () => set({ connected: true });
+    handleDisconnect = () => set({ connected: false });
 
-    socket.on('sensor_update', (data: Partial<SensorReadings>) => {
+    handleSensorUpdate = (data: Partial<SensorReadings>) => {
       set((state) => ({
         readings: {
           ...state.readings,
@@ -57,9 +60,9 @@ export const useSensorStore = create<SensorState>()((set) => ({
         } as SensorReadings,
         lastUpdated: new Date(),
       }));
-    });
+    };
 
-    socket.on('actuator_update', (data: Record<string, boolean>) => {
+    handleActuatorUpdate = (data: Record<string, boolean>) => {
       set((state) => ({
         readings: {
           ...state.readings,
@@ -70,14 +73,26 @@ export const useSensorStore = create<SensorState>()((set) => ({
         } as SensorReadings,
         lastUpdated: new Date(),
       }));
-    });
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('sensor.update', handleSensorUpdate);
+    socket.on('actuator.update', handleActuatorUpdate);
   },
 
   disconnect: () => {
-    if (socket) {
-      socket.disconnect();
-      socket = null;
+    const socket = getSocket();
+    if (socket && handleConnect && handleDisconnect && handleSensorUpdate && handleActuatorUpdate) {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('sensor.update', handleSensorUpdate);
+      socket.off('actuator.update', handleActuatorUpdate);
     }
+    handleConnect = null;
+    handleDisconnect = null;
+    handleSensorUpdate = null;
+    handleActuatorUpdate = null;
     set({ connected: false });
   },
 }));

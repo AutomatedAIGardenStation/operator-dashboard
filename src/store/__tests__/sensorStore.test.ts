@@ -1,15 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSensorStore } from '../sensorStore';
 
-// Mock socket.io-client
-const mockOn = vi.fn();
-const mockDisconnect = vi.fn();
+import * as useWebSocketModule from '../../hooks/useWebSocket';
 
-vi.mock('socket.io-client', () => {
+// Mock useWebSocket
+const mockOn = vi.fn();
+const mockOff = vi.fn();
+
+vi.mock('../../hooks/useWebSocket', () => {
   return {
-    io: vi.fn(() => ({
+    getSocket: vi.fn(() => ({
       on: mockOn,
-      disconnect: mockDisconnect,
+      off: mockOff,
+      connected: false,
     })),
   };
 });
@@ -18,9 +21,14 @@ describe('sensorStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // We also need to clear the socket singleton so connect() works
+    // Ensure getSocket returns our mocked socket
+    (useWebSocketModule.getSocket as any).mockReturnValue({
+      on: mockOn,
+      off: mockOff,
+      connected: false,
+    });
+
     useSensorStore.getState().disconnect();
-    vi.clearAllMocks();
 
     useSensorStore.setState({
       readings: null,
@@ -41,8 +49,8 @@ describe('sensorStore', () => {
     // Verify listeners were added
     expect(mockOn).toHaveBeenCalledWith('connect', expect.any(Function));
     expect(mockOn).toHaveBeenCalledWith('disconnect', expect.any(Function));
-    expect(mockOn).toHaveBeenCalledWith('sensor_update', expect.any(Function));
-    expect(mockOn).toHaveBeenCalledWith('actuator_update', expect.any(Function));
+    expect(mockOn).toHaveBeenCalledWith('sensor.update', expect.any(Function));
+    expect(mockOn).toHaveBeenCalledWith('actuator.update', expect.any(Function));
   });
 
   it('updates state on connect event', () => {
@@ -55,9 +63,9 @@ describe('sensorStore', () => {
   });
 
   it('updates state on disconnect event', () => {
+    // Set connected first so connect() doesn't return early
+    useSensorStore.setState({ connected: false });
     useSensorStore.getState().connect();
-
-    // Set connected first
     useSensorStore.setState({ connected: true });
 
     const disconnectHandler = mockOn.mock.calls.find(call => call[0] === 'disconnect')?.[1];
@@ -66,10 +74,10 @@ describe('sensorStore', () => {
     expect(useSensorStore.getState().connected).toBe(false);
   });
 
-  it('updates readings on sensor_update event', () => {
+  it('updates readings on sensor.update event', () => {
     useSensorStore.getState().connect();
 
-    const sensorUpdateHandler = mockOn.mock.calls.find(call => call[0] === 'sensor_update')?.[1];
+    const sensorUpdateHandler = mockOn.mock.calls.find(call => call[0] === 'sensor.update')?.[1];
 
     const mockData = {
       temp: 25.5,
@@ -90,7 +98,7 @@ describe('sensorStore', () => {
     expect(state.lastUpdated).toBeInstanceOf(Date);
   });
 
-  it('merges actuator_status on actuator_update event', () => {
+  it('merges actuator_status on actuator.update event', () => {
     useSensorStore.setState({
       readings: {
         temp: 25,
@@ -105,7 +113,7 @@ describe('sensorStore', () => {
 
     useSensorStore.getState().connect();
 
-    const actuatorUpdateHandler = mockOn.mock.calls.find(call => call[0] === 'actuator_update')?.[1];
+    const actuatorUpdateHandler = mockOn.mock.calls.find(call => call[0] === 'actuator.update')?.[1];
 
     // Pump 2 turns on, Pump 1 stays on
     actuatorUpdateHandler({ pump2: true });
@@ -117,13 +125,17 @@ describe('sensorStore', () => {
     });
   });
 
-  it('disconnect() clears socket and connected state', () => {
+  it('disconnect() clears socket listeners and connected state', () => {
+    useSensorStore.setState({ connected: false });
     useSensorStore.getState().connect();
     useSensorStore.setState({ connected: true });
 
     useSensorStore.getState().disconnect();
 
-    expect(mockDisconnect).toHaveBeenCalled();
+    expect(mockOff).toHaveBeenCalledWith('connect', expect.any(Function));
+    expect(mockOff).toHaveBeenCalledWith('disconnect', expect.any(Function));
+    expect(mockOff).toHaveBeenCalledWith('sensor.update', expect.any(Function));
+    expect(mockOff).toHaveBeenCalledWith('actuator.update', expect.any(Function));
     expect(useSensorStore.getState().connected).toBe(false);
   });
 });
