@@ -21,6 +21,7 @@ import { useSensorStore } from '../../store/sensorStore';
 import { useActuatorStore } from '../../store/actuatorStore';
 import { SensorCard } from './SensorCard';
 import { ActuatorBadge } from './ActuatorBadge';
+import { TimelineScheduler } from './TimelineScheduler';
 
 export const DashboardPage: React.FC = () => {
   const { connected, readings, lastUpdated, connect, disconnect } = useSensorStore();
@@ -89,7 +90,10 @@ export const DashboardPage: React.FC = () => {
           </IonRow>
 
           <IonRow>
-            <IonCol size="12">
+            <IonCol size="12" sizeMd="6">
+              <TimelineScheduler />
+            </IonCol>
+            <IonCol size="12" sizeMd="6">
               <IonCard>
                 <IonCardHeader>
                   <IonCardTitle>Actuators Status</IonCardTitle>
