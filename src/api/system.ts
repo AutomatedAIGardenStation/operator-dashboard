@@ -16,10 +16,20 @@ export async function updateConfig(config: SystemConfig): Promise<void> {
 }
 
 export async function updateThresholds(thresholds: ThresholdConfig): Promise<void> {
-  await apiClient.put("/config/thresholds", thresholds);
+  await apiClient.put("/system/config", thresholds);
 }
 
 export async function reboot(): Promise<RebootResponse> {
   const { data } = await apiClient.post<RebootResponse>("/system/reboot");
   return data;
+}
+
+export async function getCapabilities(): Promise<string[]> {
+  try {
+    const { data } = await apiClient.get<string[]>("/");
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch capabilities", error);
+    return [];
+  }
 }

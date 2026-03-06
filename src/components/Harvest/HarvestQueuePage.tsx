@@ -16,10 +16,12 @@ import {
   useIonToast
 } from '@ionic/react';
 import { usePlantsStore } from '../../store/plantsStore';
+import { useCapability } from '../../store/capabilitiesStore';
 
 export const HarvestQueuePage: React.FC = () => {
   const { harvestQueue, plants, loading, error, fetchHarvestQueue, triggerHarvest, fetchPlants } = usePlantsStore();
   const [presentToast] = useIonToast();
+  const hasTriggerHarvest = useCapability('POST /harvest/:id/trigger');
 
   useEffect(() => {
     fetchPlants();
@@ -88,14 +90,16 @@ export const HarvestQueuePage: React.FC = () => {
                     {job.status}
                   </IonBadge>
                   <br />
-                  <IonButton
-                    size="small"
-                    onClick={() => handleTrigger(job.id)}
-                    disabled={loading || job.status !== 'ready'}
-                    data-testid="trigger-harvest-button"
-                  >
-                    Trigger Harvest
-                  </IonButton>
+                  {hasTriggerHarvest && (
+                    <IonButton
+                      size="small"
+                      onClick={() => handleTrigger(job.id)}
+                      disabled={loading || job.status !== 'ready'}
+                      data-testid="trigger-harvest-button"
+                    >
+                      Trigger Harvest
+                    </IonButton>
+                  )}
                 </div>
               </IonItem>
             ))}

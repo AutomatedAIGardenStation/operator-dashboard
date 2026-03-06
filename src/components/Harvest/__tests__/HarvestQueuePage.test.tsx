@@ -3,11 +3,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HarvestQueuePage } from '../HarvestQueuePage';
 import { usePlantsStore } from '../../../store/plantsStore';
 import { setupIonicReact } from '@ionic/react';
+import { useCapability } from '../../../store/capabilitiesStore';
 
 setupIonicReact();
 
 vi.mock('../../../store/plantsStore', () => ({
   usePlantsStore: vi.fn(),
+}));
+
+vi.mock('../../../store/capabilitiesStore', () => ({
+  useCapability: vi.fn(),
 }));
 
 const mockFetchPlants = vi.fn();
@@ -17,6 +22,7 @@ const mockTriggerHarvest = vi.fn();
 describe('HarvestQueuePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (useCapability as any).mockReturnValue(true);
     (usePlantsStore as any).mockReturnValue({
       plants: [],
       harvestQueue: [],

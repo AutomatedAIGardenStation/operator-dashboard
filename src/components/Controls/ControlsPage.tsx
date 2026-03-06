@@ -22,6 +22,7 @@ import {
 import * as actuators from '../../api/actuators';
 import { getStatus } from '../../api/system';
 import { getSocket } from '../../hooks/useWebSocket';
+import { useCapabilitiesStore } from '../../store/capabilitiesStore';
 import { GantryPanel } from './GantryPanel';
 import { ToolPanel } from './ToolPanel';
 import { ValvePanel } from './ValvePanel';
@@ -148,6 +149,7 @@ export const ControlsPage: React.FC = () => {
   }, []);
 
   const isControlsDisabled = systemState !== 'MANUAL_CONTROL' && systemState !== 'MONITORING';
+  const isCapabilityMissing = useCapabilitiesStore((state) => state.isCapabilityMissing);
 
   return (
     <IonPage>
@@ -163,6 +165,7 @@ export const ControlsPage: React.FC = () => {
           </div>
         )}
 
+        {!isCapabilityMissing('POST /actuators/water/start') && (
         <IonCard>
           <IonCardHeader>
             <IonCardTitle>Watering</IonCardTitle>
@@ -190,7 +193,9 @@ export const ControlsPage: React.FC = () => {
             </div>
           </IonCardContent>
         </IonCard>
+        )}
 
+        {!isCapabilityMissing('PUT /actuators/light') && (
         <IonCard>
           <IonCardHeader>
             <IonCardTitle>LED Channels</IonCardTitle>
@@ -213,7 +218,9 @@ export const ControlsPage: React.FC = () => {
             </IonList>
           </IonCardContent>
         </IonCard>
+        )}
 
+        {!isCapabilityMissing('PUT /actuators/fan') && (
         <IonCard>
           <IonCardHeader>
             <IonCardTitle>Ventilation</IonCardTitle>
@@ -232,12 +239,23 @@ export const ControlsPage: React.FC = () => {
             </IonItem>
           </IonCardContent>
         </IonCard>
+        )}
 
-        <GantryPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
-        <ToolPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
-        <ValvePanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
-        <DosingPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
-        <PumpPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        {!isCapabilityMissing('POST /gantry/move') && (
+          <GantryPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        )}
+        {!isCapabilityMissing('POST /tools/dock') && (
+          <ToolPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        )}
+        {!isCapabilityMissing('POST /valves/set') && (
+          <ValvePanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        )}
+        {!isCapabilityMissing('POST /dosing/recipe') && (
+          <DosingPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        )}
+        {!isCapabilityMissing('POST /pump/run') && (
+          <PumpPanel disabled={isControlsDisabled} onSuccess={showToast} onError={(msg) => showToast(msg, 'danger')} />
+        )}
 
         <IonToast
           isOpen={!!toastMessage}

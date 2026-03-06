@@ -3,11 +3,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PlantsPage } from '../PlantsPage';
 import { usePlantsStore } from '../../../store/plantsStore';
 import { setupIonicReact } from '@ionic/react';
+import { useCapability } from '../../../store/capabilitiesStore';
 
 setupIonicReact();
 
 vi.mock('../../../store/plantsStore', () => ({
   usePlantsStore: vi.fn(),
+}));
+
+vi.mock('../../../store/capabilitiesStore', () => ({
+  useCapability: vi.fn(),
 }));
 
 const mockFetchPlants = vi.fn();
@@ -17,6 +22,7 @@ const mockUpdatePlant = vi.fn();
 describe('PlantsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (useCapability as any).mockReturnValue(true);
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation(query => ({

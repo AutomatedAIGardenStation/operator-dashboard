@@ -9,6 +9,10 @@ vi.mock('../../api/auth', () => ({
   logout: vi.fn()
 }));
 
+vi.mock('../../api/system', () => ({
+  getCapabilities: vi.fn().mockResolvedValue(['GET /test']),
+}));
+
 vi.mock('@capacitor/preferences', () => ({
   Preferences: {
     set: vi.fn(),
