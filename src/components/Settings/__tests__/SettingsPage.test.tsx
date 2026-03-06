@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
 import { SettingsPage } from '../SettingsPage';
 import { updateThresholds } from '../../../api/system';
+import { triggerContentSync } from '../../../api/admin';
 import { useCapability } from '../../../store/capabilitiesStore';
 
 vi.mock('@capacitor/preferences', () => ({
@@ -15,6 +16,10 @@ vi.mock('@capacitor/preferences', () => ({
 
 vi.mock('../../../api/system', () => ({
   updateThresholds: vi.fn(),
+}));
+
+vi.mock('../../../api/admin', () => ({
+  triggerContentSync: vi.fn(),
 }));
 
 vi.mock('../../../store/capabilitiesStore', () => ({
@@ -79,6 +84,20 @@ describe('SettingsPage', () => {
       expect(updateThresholds).toHaveBeenCalledWith(expect.objectContaining({
         temp_max: '30'
       }));
+    });
+  });
+
+  it('renders Admin section and calls triggerContentSync when Sync Content button is clicked if capability exists', async () => {
+    // Already mocked useCapability to return true in beforeEach
+    render(<SettingsPage />);
+
+    const syncButton = await screen.findByText(/Sync Content/i);
+    expect(syncButton).toBeInTheDocument();
+
+    await userEvent.click(syncButton);
+
+    await waitFor(() => {
+      expect(triggerContentSync).toHaveBeenCalled();
     });
   });
 });

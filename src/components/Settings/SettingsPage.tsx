@@ -20,6 +20,7 @@ import {
 import { Preferences } from '@capacitor/preferences';
 import pkg from '../../../package.json';
 import { updateThresholds } from '../../api/system';
+import { triggerContentSync } from '../../api/admin';
 import { ThresholdConfig } from '../../api/types';
 import { useCapability } from '../../store/capabilitiesStore';
 
@@ -67,6 +68,7 @@ export const SettingsPage: React.FC = () => {
   };
 
   const hasUpdateConfig = useCapability('PUT /system/config');
+  const hasAdminContent = useCapability('POST /admin/content');
 
   const saveThresholds = async () => {
     try {
@@ -235,6 +237,40 @@ export const SettingsPage: React.FC = () => {
               <IonLabel color="danger">Logout</IonLabel>
             </IonItem>
           </IonItemGroup>
+
+          {/* Admin Section */}
+          {hasAdminContent && (
+            <IonItemGroup>
+              <IonItemDivider>
+                <IonLabel>Admin</IonLabel>
+              </IonItemDivider>
+              <IonItem>
+                <IonButton
+                  expand="block"
+                  onClick={async () => {
+                    try {
+                      await triggerContentSync();
+                      presentToast({
+                        message: 'Content synced successfully',
+                        duration: 2000,
+                        color: 'success',
+                      });
+                    } catch (error) {
+                      console.error('Failed to sync content:', error);
+                      presentToast({
+                        message: 'Failed to sync content',
+                        duration: 2000,
+                        color: 'danger',
+                      });
+                    }
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  Sync Content
+                </IonButton>
+              </IonItem>
+            </IonItemGroup>
+          )}
         </IonList>
       </IonContent>
     </IonPage>
