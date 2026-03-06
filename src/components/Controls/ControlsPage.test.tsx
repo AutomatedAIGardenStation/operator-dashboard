@@ -2,6 +2,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ControlsPage } from './ControlsPage';
 import * as actuators from '../../api/actuators';
+import * as system from '../../api/system';
+import { getSocket } from '../../hooks/useWebSocket';
 
 vi.mock('../../api/actuators', () => ({
   waterStart: vi.fn(),
@@ -10,13 +12,70 @@ vi.mock('../../api/actuators', () => ({
   setFan: vi.fn(),
 }));
 
+vi.mock('../../api/system', () => ({
+  getStatus: vi.fn(),
+}));
+
+vi.mock('../../hooks/useWebSocket', () => ({
+  getSocket: vi.fn(),
+}));
+
+vi.mock('./GantryPanel', () => ({
+  GantryPanel: ({ disabled }: { disabled: boolean }) => (
+    <div data-testid="gantry-panel" data-disabled={disabled}>GantryPanel</div>
+  ),
+}));
+
+vi.mock('./ToolPanel', () => ({
+  ToolPanel: ({ disabled }: { disabled: boolean }) => (
+    <div data-testid="tool-panel" data-disabled={disabled}>ToolPanel</div>
+  ),
+}));
+
+vi.mock('./ValvePanel', () => ({
+  ValvePanel: ({ disabled }: { disabled: boolean }) => (
+    <div data-testid="valve-panel" data-disabled={disabled}>ValvePanel</div>
+  ),
+}));
+
+vi.mock('./DosingPanel', () => ({
+  DosingPanel: ({ disabled }: { disabled: boolean }) => (
+    <div data-testid="dosing-panel" data-disabled={disabled}>DosingPanel</div>
+  ),
+}));
+
+vi.mock('./PumpPanel', () => ({
+  PumpPanel: ({ disabled }: { disabled: boolean }) => (
+    <div data-testid="pump-panel" data-disabled={disabled}>PumpPanel</div>
+  ),
+}));
+
 describe('ControlsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (system.getStatus as any).mockResolvedValue({ status: 'MANUAL_CONTROL' });
+    (getSocket as any).mockReturnValue({
+      on: vi.fn(),
+      off: vi.fn(),
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('disables panels when system state is not MANUAL_CONTROL or MONITORING', async () => {
+    (system.getStatus as any).mockResolvedValue({ status: 'AUTO' });
+
+    render(<ControlsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('gantry-panel')).toHaveAttribute('data-disabled', 'true');
+      expect(screen.getByTestId('tool-panel')).toHaveAttribute('data-disabled', 'true');
+      expect(screen.getByTestId('valve-panel')).toHaveAttribute('data-disabled', 'true');
+      expect(screen.getByTestId('dosing-panel')).toHaveAttribute('data-disabled', 'true');
+      expect(screen.getByTestId('pump-panel')).toHaveAttribute('data-disabled', 'true');
+    });
   });
 
   it('calls waterStart with selected zone on Start button click', async () => {
