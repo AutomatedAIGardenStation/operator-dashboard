@@ -16,6 +16,7 @@ import {
 import { getSocket } from '../../hooks/useWebSocket';
 import { moveGantry, homeGantry, getGantryPosition } from '../../api/gantry';
 import type { GantryPosition } from '../../api/types';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 
 interface GantryPanelProps {
   disabled: boolean;
@@ -25,6 +26,7 @@ interface GantryPanelProps {
 
 export const GantryPanel: React.FC<GantryPanelProps> = ({ disabled, onSuccess, onError }) => {
   const [loading, setLoading] = useState(false);
+  const confirmAction = useConfirmAction();
   const [position, setPosition] = useState<GantryPosition>({ x: 0, y: 0, z: 0 });
   const [targetX, setTargetX] = useState<number>(0);
   const [targetY, setTargetY] = useState<number>(0);
@@ -59,27 +61,39 @@ export const GantryPanel: React.FC<GantryPanelProps> = ({ disabled, onSuccess, o
   }, []);
 
   const handleMove = async () => {
-    setLoading(true);
-    try {
-      await moveGantry({ x: targetX, y: targetY, z: targetZ });
-      onSuccess(`Moving gantry to X:${targetX} Y:${targetY} Z:${targetZ}`);
-    } catch {
-      onError('Failed to move gantry');
-    } finally {
-      setLoading(false);
-    }
+    confirmAction(async () => {
+      setLoading(true);
+      try {
+        await moveGantry({ x: targetX, y: targetY, z: targetZ });
+        onSuccess(`Moving gantry to X:${targetX} Y:${targetY} Z:${targetZ}`);
+      } catch {
+        onError('Failed to move gantry');
+      } finally {
+        setLoading(false);
+      }
+    }, {
+      header: 'Confirm Move',
+      message: `Are you sure you want to move the gantry to X:${targetX} Y:${targetY} Z:${targetZ}?`,
+    });
   };
 
   const handleHome = async () => {
-    setLoading(true);
-    try {
-      await homeGantry();
-      onSuccess('Homing gantry axes');
-    } catch {
-      onError('Failed to home gantry');
-    } finally {
-      setLoading(false);
-    }
+    confirmAction(async () => {
+      setLoading(true);
+      try {
+        await homeGantry();
+        onSuccess('Homing gantry axes');
+      } catch {
+        onError('Failed to home gantry');
+      } finally {
+        setLoading(false);
+      }
+    }, {
+      header: 'Confirm Home Axes',
+      message: 'Are you sure you want to home the gantry axes? This may interrupt current operations.',
+      color: 'danger',
+      confirmText: 'Home Axes',
+    });
   };
 
   return (

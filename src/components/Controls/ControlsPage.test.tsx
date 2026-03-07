@@ -55,6 +55,15 @@ vi.mock('./PumpPanel', () => ({
   ),
 }));
 
+vi.mock('../../hooks/useConfirmAction', () => ({
+  useConfirmAction: () => {
+    return (action: any) => {
+      // Auto-confirm in tests
+      action();
+    };
+  },
+}));
+
 describe('ControlsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
