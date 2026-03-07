@@ -32,6 +32,9 @@ jobs:
       - name: Lint (ESLint)
         run: npm run lint
 
+      - name: Run contract integration tests (Vitest)
+        run: npm run test src/api/__tests__/contracts src/store/__tests__/contracts
+
       - name: Run unit tests (Vitest)
         run: npm run test -- --reporter=verbose
 
