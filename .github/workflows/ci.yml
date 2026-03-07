@@ -66,7 +66,7 @@ jobs:
     name: Notify pipeline-orchestrator
     runs-on: ubuntu-latest
     needs: ci
-    if: always()
+    if: github.event_name == 'pull_request' && always()
     steps:
       - name: Dispatch frontend-changed
         uses: actions/github-script@v7
