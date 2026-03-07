@@ -25,6 +25,13 @@ const mockUpdatePlant = vi.fn();
 
 describe('PlantsPage', () => {
   beforeEach(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+      })),
+    });
     vi.clearAllMocks();
     (useCapability as any).mockReturnValue(true);
     (usePlantsStore as any).mockReturnValue({

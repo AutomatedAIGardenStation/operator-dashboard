@@ -82,7 +82,7 @@ describe("API Contracts (REST)", () => {
   });
 
   it("system.getConfig uses canonical endpoint and returns SystemConfig", async () => {
-    const mockConfig: SystemConfig = { temp_max: "30", temp_min: "20" };
+    const mockConfig: SystemConfig = { sensor_reading_interval: 60, auto_watering_enabled: true };
     (apiClient.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockConfig });
 
     const result = await getConfig();
