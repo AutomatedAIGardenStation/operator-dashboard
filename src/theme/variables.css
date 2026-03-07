@@ -128,3 +128,9 @@
     --ion-tab-bar-background: #1e1e1e;
   }
 }
+
+@media (min-width: 992px) {
+  ion-tab-bar {
+    display: none;
+  }
+}

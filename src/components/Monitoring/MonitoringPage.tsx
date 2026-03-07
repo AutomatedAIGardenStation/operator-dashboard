@@ -54,14 +54,14 @@ export const MonitoringPage: React.FC = () => {
         </IonItem>
 
         <IonSegment data-testid="range-segment" value={range} onIonChange={handleRangeChange} style={{ margin: '16px 0' }}>
-          <IonSegmentButton value="1h">
-            <IonLabel>1h</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value="6h">
-            <IonLabel>6h</IonLabel>
-          </IonSegmentButton>
           <IonSegmentButton value="24h">
             <IonLabel>24h</IonLabel>
+          </IonSegmentButton>
+          <IonSegmentButton value="7d">
+            <IonLabel>7d</IonLabel>
+          </IonSegmentButton>
+          <IonSegmentButton value="30d">
+            <IonLabel>30d</IonLabel>
           </IonSegmentButton>
         </IonSegment>
 

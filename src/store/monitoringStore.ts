@@ -23,7 +23,7 @@ let refetchTimeout: ReturnType<typeof setTimeout> | null = null;
 export const useMonitoringStore = create<MonitoringState>()((set, get) => ({
   history: [],
   zone: 1,
-  range: '1h',
+  range: '24h',
   loading: false,
   error: null,
 
