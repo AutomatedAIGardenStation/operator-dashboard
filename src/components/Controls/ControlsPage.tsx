@@ -34,6 +34,7 @@ export const ControlsPage: React.FC = () => {
   const [systemState, setSystemState] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastColor, setToastColor] = useState<'success' | 'danger'>('success');
+  const [fetchFailed, setFetchFailed] = useState(false);
 
   const [waterZone, setWaterZone] = useState<number>(1);
   const [lightChannels, setLightChannels] = useState<number[]>([0, 0, 0, 0]);
@@ -121,8 +122,11 @@ export const ControlsPage: React.FC = () => {
       try {
         const { status } = await getStatus();
         setSystemState(status);
+        setFetchFailed(false);
       } catch (e) {
         console.error('Failed to fetch initial system status', e);
+        setSystemState('UNKNOWN');
+        setFetchFailed(true);
       }
     };
     void fetchStatus();
@@ -159,6 +163,15 @@ export const ControlsPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
+        {fetchFailed && (
+          <IonCard color="danger" data-testid="offline-banner" style={{ marginBottom: '1rem' }}>
+            <IonCardContent style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <IonLabel style={{ fontWeight: 'bold' }}>Offline / Degraded</IonLabel>
+              <IonLabel>- Unable to communicate with the system. Controls are disabled.</IonLabel>
+            </IonCardContent>
+          </IonCard>
+        )}
+
         {loading && (
           <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
             <IonSpinner name="crescent" />

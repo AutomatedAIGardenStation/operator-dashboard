@@ -4,6 +4,11 @@ import { ControlsPage } from './ControlsPage';
 import * as actuators from '../../api/actuators';
 import * as system from '../../api/system';
 import { getSocket } from '../../hooks/useWebSocket';
+import { useCapabilitiesStore } from '../../store/capabilitiesStore';
+
+vi.mock('../../store/capabilitiesStore', () => ({
+  useCapabilitiesStore: vi.fn(),
+}));
 
 vi.mock('../../api/actuators', () => ({
   waterStart: vi.fn(),
@@ -53,10 +58,18 @@ vi.mock('./PumpPanel', () => ({
 describe('ControlsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (system.getStatus as any).mockResolvedValue({ status: 'MANUAL_CONTROL' });
-    (getSocket as any).mockReturnValue({
+    (system.getStatus as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ status: 'MANUAL_CONTROL' });
+    (getSocket as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       on: vi.fn(),
       off: vi.fn(),
+    });
+    (useCapabilitiesStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: unknown) => {
+        if (typeof selector === 'function') {
+            return selector({
+                isCapabilityMissing: vi.fn().mockReturnValue(false)
+            });
+        }
+        return { isCapabilityMissing: vi.fn().mockReturnValue(false) };
     });
   });
 
@@ -65,7 +78,7 @@ describe('ControlsPage', () => {
   });
 
   it('disables panels when system state is not MANUAL_CONTROL or MONITORING', async () => {
-    (system.getStatus as any).mockResolvedValue({ status: 'AUTO' });
+    (system.getStatus as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ status: 'AUTO' });
 
     render(<ControlsPage />);
 
@@ -79,7 +92,7 @@ describe('ControlsPage', () => {
   });
 
   it('calls waterStart with selected zone on Start button click', async () => {
-    (actuators.waterStart as any).mockResolvedValueOnce();
+    (actuators.waterStart as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
 
     render(<ControlsPage />);
 
@@ -98,13 +111,13 @@ describe('ControlsPage', () => {
 
   it('debounces the light slider onChange event', async () => {
     vi.useFakeTimers();
-    (actuators.setLight as any).mockResolvedValueOnce();
+    (actuators.setLight as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(undefined);
 
     render(<ControlsPage />);
 
     // Get the first range input (Channel 1)
     // Ionic ranges can be tricky, but we can target the element
-    const channel1Range = document.querySelectorAll('ion-range')[0] as any;
+    const channel1Range = document.querySelectorAll('ion-range')[0] as unknown as HTMLElement;
 
     // Fire multiple change events
     fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 10 } }));
@@ -123,7 +136,7 @@ describe('ControlsPage', () => {
   });
 
   it('shows error toast on API failure', async () => {
-    (actuators.waterStart as any).mockRejectedValueOnce(new Error('Network error'));
+    (actuators.waterStart as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
 
     render(<ControlsPage />);
 
@@ -136,5 +149,22 @@ describe('ControlsPage', () => {
       // It should display error toast
       expect(document.querySelector('ion-toast')).toHaveAttribute('message', 'Failed to execute command');
     });
+  });
+
+  it('handles fetchStatus API failure, shows offline banner, and disables controls', async () => {
+    (system.getStatus as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Backend offline'));
+
+    render(<ControlsPage />);
+
+    // Wait for the banner to appear naturally within the React lifecycle rather than hardcoded act timeout
+    await waitFor(() => {
+      expect(screen.getByTestId('offline-banner')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Unable to communicate with the system/i)).toBeInTheDocument();
+
+    expect(screen.getByText('Start').closest('ion-button')).toHaveAttribute('disabled');
+    expect(screen.getByText('Stop All').closest('ion-button')).toHaveAttribute('disabled');
+    expect(screen.getByTestId('gantry-panel')).toHaveAttribute('data-disabled', 'true');
   });
 });
