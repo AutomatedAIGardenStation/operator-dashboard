@@ -29,6 +29,7 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+/* global process */
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   // Fail the test process if there's an unhandled rejection to prevent CI from hanging or silently passing
