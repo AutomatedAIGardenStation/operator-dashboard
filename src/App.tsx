@@ -49,8 +49,8 @@ const App: React.FC = () => {
           <Route path="/(dashboard|monitoring|controls|plants|settings|harvest)">
             <IonSplitPane contentId="main" when="lg">
               <Menu />
-              <IonTabs id="main">
-                <IonRouterOutlet>
+              <IonTabs className="main-content">
+                <IonRouterOutlet id="main">
                   <RequireAuth exact path="/dashboard" component={DashboardPage} />
                   <RequireAuth exact path="/monitoring" component={MonitoringPage} />
                   <RequireAuth exact path="/controls" component={ControlsPage} />
