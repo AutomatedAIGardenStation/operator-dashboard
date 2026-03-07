@@ -27,7 +27,22 @@ export default [
       ...reactHooksPlugin.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "@typescript-eslint/no-explicit-any": "off"
+      "@typescript-eslint/no-explicit-any": "off",
+      "no-restricted-syntax": [
+        "error",
+        {
+          "selector": "Literal[value=/[\\/]arm([\\/]|$)/]",
+          "message": "Use canonical /gantry/ endpoints instead of /arm/"
+        },
+        {
+          "selector": "Literal[value=/[\\/]push-notification([\\/]|$)/]",
+          "message": "Use canonical /notifications/register endpoint instead of /push-notification"
+        },
+        {
+          "selector": "Literal[value=/[\\/]system[\\/]thresholds([\\/]|$)/]",
+          "message": "Use canonical /system/config endpoint instead of /system/thresholds"
+        }
+      ]
     },
     settings: {
       react: {

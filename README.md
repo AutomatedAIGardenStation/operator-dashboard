@@ -94,4 +94,5 @@ Full architecture docs, API mappings, and development guides live in the project
 - [Mobile App Architecture](../project-info/Docs/06_Software/Frontend/Mobile%20App%20Architecture.md) — Capacitor native layer, plugins, offline strategy
 - [Mobile Application](../project-info/Docs/06_Software/Frontend/Mobile%20Application.md) — screen descriptions, UX flows, mockups
 - [API Mapping](../project-info/Docs/06_Software/Frontend/API%20Mapping.md) — screen-to-endpoint mapping, WebSocket subscriptions
+- [API Migration Guide](./docs/MIGRATION.md) — canonical endpoint changes (e.g. gantry vs arm, thresholds) and backend shims.
 - [Frontend Dev Guide](../project-info/Docs/07_Development/Frontend/Frontend.md) — environment setup, build & deploy workflow

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, type Token, type ActionPerformed } from '@capacitor/push-notifications';
 import api from '../api/axios';
+import { API_ENDPOINTS } from '../api/endpoints';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ async function sendTokenToBackend(token: string): Promise<void> {
   console.log('[push] Stub: Device token registered:', payload);
 
   try {
-    await api.post('/notifications/register', payload);
+    await api.post(API_ENDPOINTS.NOTIFICATIONS.REGISTER, payload);
   } catch (err) {
     console.error('[push] Failed to register device token', err);
   }

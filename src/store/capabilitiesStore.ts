@@ -31,7 +31,8 @@ const ALL_CAPABILITIES = [
   'GET /chambers', 'GET /chambers/:id',
   'POST /ml/infer', 'GET /ml/models',
   'POST /auth/login', 'POST /auth/refresh', 'POST /auth/logout',
-  'POST /dosing/recipe', 'POST /pump/run'
+  'POST /dosing/recipe', 'POST /pump/run',
+  'POST /notifications/register'
 ];
 
 function matchCapability(requestCapability: string, storedCapabilities: Set<string>): boolean {
