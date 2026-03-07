@@ -71,7 +71,7 @@ export interface SensorHistoryParams {
   end_time?: string;
   limit?: number;
   aggregation?: "avg" | "min" | "max" | "sum";
-  interval?: "1h" | "1d" | "1w";
+  interval?: "24h" | "7d" | "30d";
 }
 
 export interface SensorListParams {
