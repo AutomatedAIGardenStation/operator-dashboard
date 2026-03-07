@@ -4,6 +4,11 @@ import { ControlsPage } from './ControlsPage';
 import * as actuators from '../../api/actuators';
 import * as system from '../../api/system';
 import { getSocket } from '../../hooks/useWebSocket';
+import { useCapabilitiesStore } from '../../store/capabilitiesStore';
+
+vi.mock('../../store/capabilitiesStore', () => ({
+  useCapabilitiesStore: vi.fn(),
+}));
 
 vi.mock('../../api/actuators', () => ({
   waterStart: vi.fn(),
@@ -57,6 +62,14 @@ describe('ControlsPage', () => {
     (getSocket as any).mockReturnValue({
       on: vi.fn(),
       off: vi.fn(),
+    });
+    (useCapabilitiesStore as any).mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+            return selector({
+                isCapabilityMissing: vi.fn().mockReturnValue(false)
+            });
+        }
+        return { isCapabilityMissing: vi.fn().mockReturnValue(false) };
     });
   });
 
@@ -136,5 +149,24 @@ describe('ControlsPage', () => {
       // It should display error toast
       expect(document.querySelector('ion-toast')).toHaveAttribute('message', 'Failed to execute command');
     });
+  });
+
+  it('handles fetchStatus API failure, shows offline banner, and disables controls', async () => {
+    (system.getStatus as any).mockRejectedValueOnce(new Error('Backend offline'));
+
+    const { act } = await import('@testing-library/react');
+    render(<ControlsPage />);
+
+    await act(async () => {
+        // Wait 500ms to let the promise resolve and React commit the batch update
+        await new Promise((resolve) => setTimeout(resolve, 500));
+    });
+
+    expect(screen.getByTestId('offline-banner')).toBeInTheDocument();
+    expect(screen.getByText(/Unable to communicate with the system/i)).toBeInTheDocument();
+
+    expect(screen.getByText('Start').closest('ion-button')).toHaveAttribute('disabled');
+    expect(screen.getByText('Stop All').closest('ion-button')).toHaveAttribute('disabled');
+    expect(screen.getByTestId('gantry-panel')).toHaveAttribute('data-disabled', 'true');
   });
 });

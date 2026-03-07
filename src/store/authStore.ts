@@ -63,7 +63,7 @@ const parseUserFromToken = (token: string): User | null => {
       email: decoded.email,
       role: decoded.role,
     };
-  } catch (_error) {
+  } catch {
     console.warn('Failed to parse JWT token');
     return null;
   }

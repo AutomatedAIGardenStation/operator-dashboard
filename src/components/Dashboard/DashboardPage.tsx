@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   IonPage,
   IonHeader,
@@ -16,9 +16,10 @@ import {
   IonLabel,
   IonIcon,
 } from '@ionic/react';
-import { warningOutline } from 'ionicons/icons';
+import { warningOutline, timeOutline } from 'ionicons/icons';
 import { useSensorStore } from '../../store/sensorStore';
 import { useActuatorStore } from '../../store/actuatorStore';
+import { useCapabilitiesStore } from '../../store/capabilitiesStore';
 import { SensorCard } from './SensorCard';
 import { ActuatorBadge } from './ActuatorBadge';
 import { TimelineScheduler } from './TimelineScheduler';
@@ -27,6 +28,9 @@ export const DashboardPage: React.FC = () => {
   const { connected, readings, lastUpdated, connect, disconnect } = useSensorStore();
   const actuatorConnect = useActuatorStore(state => state.connect);
   const actuatorDisconnect = useActuatorStore(state => state.disconnect);
+  const isCapabilityMissing = useCapabilitiesStore(state => state.isCapabilityMissing);
+
+  const [isStale, setIsStale] = useState(false);
 
   useEffect(() => {
     connect();
@@ -36,6 +40,18 @@ export const DashboardPage: React.FC = () => {
       actuatorDisconnect();
     };
   }, [connect, disconnect, actuatorConnect, actuatorDisconnect]);
+
+  useEffect(() => {
+    const checkStale = () => {
+      if (!lastUpdated) return setIsStale(true);
+      const diff = Date.now() - lastUpdated.getTime();
+      setIsStale(diff > 30000); // 30 seconds
+    };
+
+    checkStale();
+    const interval = setInterval(checkStale, 5000);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
 
   return (
     <IonPage>
@@ -49,6 +65,13 @@ export const DashboardPage: React.FC = () => {
           <IonItem color="danger" style={{ marginBottom: '16px' }} data-testid="disconnected-banner">
             <IonIcon icon={warningOutline} slot="start" />
             <IonLabel>⚠ Disconnected</IonLabel>
+          </IonItem>
+        )}
+
+        {connected && isStale && (
+          <IonItem color="warning" style={{ marginBottom: '16px' }} data-testid="stale-banner">
+            <IonIcon icon={timeOutline} slot="start" />
+            <IonLabel>⚠ Stale Data (Backend may be degraded)</IonLabel>
           </IonItem>
         )}
 
@@ -90,9 +113,11 @@ export const DashboardPage: React.FC = () => {
           </IonRow>
 
           <IonRow>
-            <IonCol size="12" sizeMd="6">
-              <TimelineScheduler />
-            </IonCol>
+            {!isCapabilityMissing('GET /harvest/queue') && (
+              <IonCol size="12" sizeMd="6">
+                <TimelineScheduler />
+              </IonCol>
+            )}
             <IonCol size="12" sizeMd="6">
               <IonCard>
                 <IonCardHeader>
