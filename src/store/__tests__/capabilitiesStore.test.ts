@@ -17,6 +17,7 @@ describe('useCapabilitiesStore', () => {
     // Check something that wasn't passed and is in ALL_CAPABILITIES
     expect(useCapabilitiesStore.getState().isCapabilityMissing('GET /actuators')).toBe(true);
     expect(useCapabilitiesStore.getState().isCapabilityMissing('POST /actuators/water/stop')).toBe(true);
+    expect(useCapabilitiesStore.getState().isCapabilityMissing('POST /notifications/register')).toBe(true);
   });
 
   it('markCapabilityMissing correctly adds capabilities to missing list and generalizes them', () => {

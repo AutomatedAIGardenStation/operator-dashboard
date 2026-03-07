@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { login } from "../../auth";
 import { getSensors, getSensorHistory } from "../../sensors";
 import { getActuators, getActuatorStatus } from "../../actuators";
-import { getStatus } from "../../system";
+import { getStatus, getConfig } from "../../system";
+import { getGantryPosition } from "../../gantry";
 
 import {
   authTokensFixture,
@@ -12,6 +13,7 @@ import {
   actuatorStatusFixture,
   systemStatusFixture,
 } from "./fixtures";
+import type { SystemConfig, GantryPosition } from "../../types";
 
 import axios from "axios";
 import apiClient from "../../axios";
@@ -77,5 +79,25 @@ describe("API Contracts (REST)", () => {
     const result = await getStatus();
 
     expect(result).toMatchSnapshot();
+  });
+
+  it("system.getConfig uses canonical endpoint and returns SystemConfig", async () => {
+    const mockConfig: SystemConfig = { sensor_reading_interval: 60, auto_watering_enabled: true };
+    (apiClient.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockConfig });
+
+    const result = await getConfig();
+
+    expect(apiClient.get).toHaveBeenCalledWith("/system/config");
+    expect(result).toEqual(mockConfig);
+  });
+
+  it("gantry.getGantryPosition uses canonical endpoint and returns GantryPosition", async () => {
+    const mockPosition: GantryPosition = { x: 10, y: 20, z: 30, status: "IDLE" };
+    (apiClient.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockPosition });
+
+    const result = await getGantryPosition();
+
+    expect(apiClient.get).toHaveBeenCalledWith("/gantry/position");
+    expect(result).toEqual(mockPosition);
   });
 });
