@@ -15,6 +15,7 @@ import {
 import { getSocket } from '../../hooks/useWebSocket';
 import { dockTool, releaseTool, getCurrentTool } from '../../api/tools';
 import type { ToolType } from '../../api/types';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 
 interface ToolPanelProps {
   disabled: boolean;
@@ -24,6 +25,7 @@ interface ToolPanelProps {
 
 export const ToolPanel: React.FC<ToolPanelProps> = ({ disabled, onSuccess, onError }) => {
   const [loading, setLoading] = useState(false);
+  const confirmAction = useConfirmAction();
   const [currentTool, setCurrentTool] = useState<ToolType>('NONE');
   const [selectedTool, setSelectedTool] = useState<ToolType>('CAMERA');
 
@@ -53,27 +55,39 @@ export const ToolPanel: React.FC<ToolPanelProps> = ({ disabled, onSuccess, onErr
   }, []);
 
   const handleDock = async () => {
-    setLoading(true);
-    try {
-      await dockTool();
-      onSuccess('Docking current tool');
-    } catch {
-      onError('Failed to dock tool');
-    } finally {
-      setLoading(false);
-    }
+    confirmAction(async () => {
+      setLoading(true);
+      try {
+        await dockTool();
+        onSuccess('Docking current tool');
+      } catch {
+        onError('Failed to dock tool');
+      } finally {
+        setLoading(false);
+      }
+    }, {
+      header: 'Confirm Dock',
+      message: 'Are you sure you want to dock the current tool?',
+      color: 'danger',
+      confirmText: 'Dock Tool',
+    });
   };
 
   const handleRelease = async () => {
-    setLoading(true);
-    try {
-      await releaseTool(selectedTool);
-      onSuccess(`Releasing tool: ${selectedTool}`);
-    } catch {
-      onError('Failed to release tool');
-    } finally {
-      setLoading(false);
-    }
+    confirmAction(async () => {
+      setLoading(true);
+      try {
+        await releaseTool(selectedTool);
+        onSuccess(`Releasing tool: ${selectedTool}`);
+      } catch {
+        onError('Failed to release tool');
+      } finally {
+        setLoading(false);
+      }
+    }, {
+      header: 'Confirm Release',
+      message: `Are you sure you want to release the ${selectedTool} tool?`,
+    });
   };
 
   return (

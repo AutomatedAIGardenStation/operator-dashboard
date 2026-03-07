@@ -11,6 +11,7 @@ import {
   IonSpinner,
 } from '@ionic/react';
 import { setValve } from '../../api/valves';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 
 interface ValvePanelProps {
   disabled: boolean;
@@ -28,19 +29,28 @@ const VALVES = [
 
 export const ValvePanel: React.FC<ValvePanelProps> = ({ disabled, onSuccess, onError }) => {
   const [loading, setLoading] = useState<string | null>(null);
+  const confirmAction = useConfirmAction();
   const [valveStates, setValveStates] = useState<Record<string, boolean>>({});
 
   const handleToggle = async (valveId: string, state: boolean) => {
-    setLoading(valveId);
-    try {
-      await setValve({ valve_id: valveId, state });
-      setValveStates((prev) => ({ ...prev, [valveId]: state }));
-      onSuccess(`Toggled valve ${valveId} to ${state ? 'ON' : 'OFF'}`);
-    } catch {
-      onError(`Failed to toggle valve ${valveId}`);
-    } finally {
-      setLoading(null);
-    }
+    const valveName = VALVES.find(v => v.id === valveId)?.label || valveId;
+    confirmAction(async () => {
+      setLoading(valveId);
+      try {
+        await setValve({ valve_id: valveId, state });
+        setValveStates((prev) => ({ ...prev, [valveId]: state }));
+        onSuccess(`Toggled valve ${valveId} to ${state ? 'ON' : 'OFF'}`);
+      } catch {
+        // revert the optimistic toggle if it failed
+        setValveStates((prev) => ({ ...prev, [valveId]: !state }));
+        onError(`Failed to toggle valve ${valveId}`);
+      } finally {
+        setLoading(null);
+      }
+    }, {
+      header: 'Confirm Valve Toggle',
+      message: `Are you sure you want to turn ${state ? 'ON' : 'OFF'} the ${valveName} valve?`,
+    });
   };
 
   return (
@@ -59,7 +69,12 @@ export const ValvePanel: React.FC<ValvePanelProps> = ({ disabled, onSuccess, onE
                 <IonToggle
                   checked={valveStates[v.id] || false}
                   disabled={disabled}
-                  onIonChange={(e) => handleToggle(v.id, e.detail.checked)}
+                  onIonChange={(e) => {
+                    // Prevent infinite loop from React controlled component state updates
+                    if (valveStates[v.id] !== e.detail.checked) {
+                      handleToggle(v.id, e.detail.checked);
+                    }
+                  }}
                 />
               )}
             </IonItem>

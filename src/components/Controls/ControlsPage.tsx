@@ -23,6 +23,7 @@ import * as actuators from '../../api/actuators';
 import { getStatus } from '../../api/system';
 import { getSocket } from '../../hooks/useWebSocket';
 import { useCapabilitiesStore } from '../../store/capabilitiesStore';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { GantryPanel } from './GantryPanel';
 import { ToolPanel } from './ToolPanel';
 import { ValvePanel } from './ValvePanel';
@@ -39,6 +40,7 @@ export const ControlsPage: React.FC = () => {
   const [waterZone, setWaterZone] = useState<number>(1);
   const [lightChannels, setLightChannels] = useState<number[]>([0, 0, 0, 0]);
   const [fanSpeed, setFanSpeed] = useState<number>(0);
+  const confirmAction = useConfirmAction();
 
   const showToast = (message: string, color: 'success' | 'danger' = 'success') => {
     setToastMessage(message);
@@ -54,27 +56,39 @@ export const ControlsPage: React.FC = () => {
   };
 
   const handleWaterStart = async () => {
-    try {
-      setLoading(true);
-      await actuators.waterStart(waterZone);
-      showToast(`Started watering zone ${waterZone}`);
-    } catch (error) {
-      handleError(error);
-    } finally {
-      setLoading(false);
-    }
+    confirmAction(async () => {
+      try {
+        setLoading(true);
+        await actuators.waterStart(waterZone);
+        showToast(`Started watering zone ${waterZone}`);
+      } catch (error) {
+        handleError(error);
+      } finally {
+        setLoading(false);
+      }
+    }, {
+      header: 'Confirm Watering',
+      message: `Are you sure you want to start watering zone ${waterZone}?`,
+    });
   };
 
   const handleWaterStopAll = async () => {
-    try {
-      setLoading(true);
-      await actuators.waterStopAll();
-      showToast('Stopped all watering');
-    } catch (error) {
-      handleError(error);
-    } finally {
-      setLoading(false);
-    }
+    confirmAction(async () => {
+      try {
+        setLoading(true);
+        await actuators.waterStopAll();
+        showToast('Stopped all watering');
+      } catch (error) {
+        handleError(error);
+      } finally {
+        setLoading(false);
+      }
+    }, {
+      header: 'Confirm Stop All',
+      message: 'Are you sure you want to stop all watering immediately?',
+      color: 'danger',
+      confirmText: 'Stop All',
+    });
   };
 
   const lightDebounceTimers = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({});

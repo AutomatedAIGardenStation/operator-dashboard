@@ -14,6 +14,7 @@ import {
   IonCol,
 } from '@ionic/react';
 import { triggerDosingRecipe } from '../../api/dosing';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 
 interface DosingPanelProps {
   disabled: boolean;
@@ -23,26 +24,32 @@ interface DosingPanelProps {
 
 export const DosingPanel: React.FC<DosingPanelProps> = ({ disabled, onSuccess, onError }) => {
   const [loading, setLoading] = useState(false);
+  const confirmAction = useConfirmAction();
   const [nutA, setNutA] = useState(0);
   const [nutB, setNutB] = useState(0);
   const [phUp, setPhUp] = useState(0);
   const [phDown, setPhDown] = useState(0);
 
   const handleDose = async () => {
-    setLoading(true);
-    try {
-      await triggerDosingRecipe({
-        nut_a_ms: nutA,
-        nut_b_ms: nutB,
-        ph_up_ms: phUp,
-        ph_down_ms: phDown,
-      });
-      onSuccess('Dosing recipe triggered');
-    } catch {
-      onError('Failed to trigger dosing recipe');
-    } finally {
-      setLoading(false);
-    }
+    confirmAction(async () => {
+      setLoading(true);
+      try {
+        await triggerDosingRecipe({
+          nut_a_ms: nutA,
+          nut_b_ms: nutB,
+          ph_up_ms: phUp,
+          ph_down_ms: phDown,
+        });
+        onSuccess('Dosing recipe triggered');
+      } catch {
+        onError('Failed to trigger dosing recipe');
+      } finally {
+        setLoading(false);
+      }
+    }, {
+      header: 'Confirm Dosing',
+      message: `Are you sure you want to trigger a dosing recipe? NutA: ${nutA}ms, NutB: ${nutB}ms, pH Up: ${phUp}ms, pH Down: ${phDown}ms.`,
+    });
   };
 
   return (

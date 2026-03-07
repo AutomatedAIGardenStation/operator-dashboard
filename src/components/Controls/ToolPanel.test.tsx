@@ -14,6 +14,15 @@ vi.mock('../../hooks/useWebSocket', () => ({
   getSocket: vi.fn(),
 }));
 
+vi.mock('../../hooks/useConfirmAction', () => ({
+  useConfirmAction: () => {
+    return (action: any) => {
+      // Auto-confirm in tests
+      action();
+    };
+  },
+}));
+
 describe('ToolPanel', () => {
   const onSuccess = vi.fn();
   const onError = vi.fn();

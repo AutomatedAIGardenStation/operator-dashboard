@@ -7,6 +7,15 @@ vi.mock('../../api/valves', () => ({
   setValve: vi.fn(),
 }));
 
+vi.mock('../../hooks/useConfirmAction', () => ({
+  useConfirmAction: () => {
+    return (action: any) => {
+      // Auto-confirm in tests
+      action();
+    };
+  },
+}));
+
 describe('ValvePanel', () => {
   const onSuccess = vi.fn();
   const onError = vi.fn();
