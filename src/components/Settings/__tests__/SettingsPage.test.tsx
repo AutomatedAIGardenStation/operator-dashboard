@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
@@ -56,8 +56,10 @@ describe('SettingsPage', () => {
     if (lowTankToggle) {
         // IonToggle custom element events in JSDOM might be tricky, directly call onIonChange if needed
         // Since we are using standard event testing, let's dispatch an event
-        const event = new CustomEvent('ionChange', { detail: { checked: true } });
-        lowTankToggle.dispatchEvent(event);
+        act(() => {
+            const event = new CustomEvent('ionChange', { detail: { checked: true } });
+            lowTankToggle.dispatchEvent(event);
+        });
     }
 
     await waitFor(() => {
@@ -73,12 +75,18 @@ describe('SettingsPage', () => {
     const maxTempInput = container.querySelector('#temp_max');
 
     if (maxTempInput) {
-        const event = new CustomEvent('ionInput', { detail: { value: '30' } });
-        maxTempInput.dispatchEvent(event);
+        act(() => {
+            const event = new CustomEvent('ionInput', { detail: { value: '30' } });
+            maxTempInput.dispatchEvent(event);
+        });
     }
 
     const saveButton = await screen.findByText(/Save Thresholds/i);
-    await userEvent.click(saveButton);
+
+    // userEvent might trigger state updates via async event bubbling, wrap it
+    await act(async () => {
+      await userEvent.click(saveButton);
+    });
 
     await waitFor(() => {
       expect(updateThresholds).toHaveBeenCalledWith(expect.objectContaining({
@@ -94,7 +102,9 @@ describe('SettingsPage', () => {
     const syncButton = await screen.findByText(/Sync Content/i);
     expect(syncButton).toBeInTheDocument();
 
-    await userEvent.click(syncButton);
+    await act(async () => {
+      await userEvent.click(syncButton);
+    });
 
     await waitFor(() => {
       expect(triggerContentSync).toHaveBeenCalled();

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { LoginPage } from '../LoginPage';
 import { useAuthStore } from '../../../store/authStore';
 import { Router } from 'react-router-dom';
@@ -76,7 +76,9 @@ describe('LoginPage', () => {
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     expect(loginMock).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' });
 
@@ -102,7 +104,9 @@ describe('LoginPage', () => {
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'wrongpass' } });
 
-    fireEvent.click(submitButton);
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     await vi.waitFor(() => {
       expect(loginMock).toHaveBeenCalled();
