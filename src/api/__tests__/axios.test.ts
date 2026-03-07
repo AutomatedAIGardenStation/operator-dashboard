@@ -65,18 +65,18 @@ describe('apiClient interceptors', () => {
 
     // Since we can't reliably mock `apiClient()` default invocation in this test environment without triggering
     // actual network requests, let's just intercept `setTimeout` and check that the delay logic is triggered properly.
-    const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation((_cb: string | Function) => {
+    const setTimeoutSpy = vi.spyOn(window, 'setTimeout').mockImplementation((_cb: string | ((...args: unknown[]) => void)) => {
       // By NOT calling cb(), we prevent apiClient(original) from being called recursively
       // and therefore prevent the network ECONNREFUSED error entirely.
-      return 1 as unknown as NodeJS.Timeout;
+      return 1 as unknown as ReturnType<typeof setTimeout>;
     });
 
     // We do not await this, because the promise will never resolve since we intercepted setTimeout and didn't call cb.
-    responseInterceptor(error);
+    void responseInterceptor(error);
 
     // We just verify that setTimeout was called correctly
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
-    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000); // 2^1 * 1000
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Object.getPrototypeOf(function(){}).constructor), 2000); // 2^1 * 1000
     expect(config._retryCount).toBe(1);
 
     setTimeoutSpy.mockRestore();
