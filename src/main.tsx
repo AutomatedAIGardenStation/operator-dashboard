@@ -2,6 +2,12 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 
+if (!import.meta.env.VITE_API_BASE_URL || !import.meta.env.VITE_WS_URL) {
+  console.warn(
+    'Missing required VITE_API_BASE_URL or VITE_WS_URL in environment. Using default values.'
+  );
+}
+
 const container = document.getElementById('root');
 if (!container) throw new Error('Root element not found');
 
