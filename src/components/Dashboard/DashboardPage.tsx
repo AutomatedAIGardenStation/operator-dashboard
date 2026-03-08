@@ -23,6 +23,7 @@ import { useCapabilitiesStore } from '../../store/capabilitiesStore';
 import { SensorCard } from './SensorCard';
 import { ActuatorBadge } from './ActuatorBadge';
 import { TimelineScheduler } from './TimelineScheduler';
+import { YieldPredictor } from './YieldPredictor';
 
 export const DashboardPage: React.FC = () => {
   const { connected, readings, lastUpdated, connect, disconnect } = useSensorStore();
@@ -118,6 +119,9 @@ export const DashboardPage: React.FC = () => {
                 <TimelineScheduler />
               </IonCol>
             )}
+            <IonCol size="12" sizeMd="6">
+              <YieldPredictor />
+            </IonCol>
             <IonCol size="12" sizeMd="6">
               <IonCard>
                 <IonCardHeader>
