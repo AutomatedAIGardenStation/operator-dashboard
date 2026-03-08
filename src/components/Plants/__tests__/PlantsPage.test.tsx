@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PlantsPage } from '../PlantsPage';
 import { usePlantsStore } from '../../../store/plantsStore';
@@ -25,19 +25,6 @@ const mockUpdatePlant = vi.fn();
 
 describe('PlantsPage', () => {
   beforeEach(() => {
-    Object.defineProperty(window, 'matchMedia', {
-      writable: true,
-      value: vi.fn().mockImplementation(query => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: vi.fn(), // Deprecated
-        removeListener: vi.fn(), // Deprecated
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
-    });
     vi.clearAllMocks();
     (useCapability as any).mockReturnValue(true);
     (usePlantsStore as any).mockReturnValue({
@@ -50,12 +37,16 @@ describe('PlantsPage', () => {
     });
   });
 
-  it('renders an empty state message when there are no plants', () => {
+  it('renders an empty state message when there are no plants', async () => {
     render(<PlantsPage />);
-    expect(screen.getByText('No plants available. Add a plant to get started.')).toBeInTheDocument();
+
+    // PlantGrid performs async mount operations or state updates, wrap in waitFor
+    await waitFor(() => {
+      expect(screen.getByText('No plants available. Add a plant to get started.')).toBeInTheDocument();
+    });
   });
 
-  it('renders a list of plants', () => {
+  it('renders a list of plants', async () => {
     (usePlantsStore as any).mockReturnValue({
       plants: [
         { id: 1, name: 'Tomato', species: 'Solanum', zone: 'Zone A', moisture_target: 60, ec_target: 1.5, ph_min: 5.5, ph_max: 6.5 },
@@ -68,17 +59,27 @@ describe('PlantsPage', () => {
     });
 
     render(<PlantsPage />);
-    expect(screen.getByText('Tomato')).toBeInTheDocument();
-    expect(screen.getByText('Solanum')).toBeInTheDocument();
-    expect(screen.getByText('Zone A')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('Tomato')).toBeInTheDocument();
+      expect(screen.getByText('Solanum')).toBeInTheDocument();
+      expect(screen.getByText('Zone A')).toBeInTheDocument();
+    });
   });
 
   it('opens modal and calls createPlant on submit', async () => {
     render(<PlantsPage />);
 
+    // Wait for initial render and data fetch to complete before interaction
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     // Open modal
     const addButton = screen.getByTestId('add-plant-button');
-    fireEvent.click(addButton);
+    await act(async () => {
+      fireEvent.click(addButton);
+    });
 
     // Wait for modal to open
     await waitFor(() => {

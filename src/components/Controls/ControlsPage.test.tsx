@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ControlsPage } from './ControlsPage';
 import * as actuators from '../../api/actuators';
@@ -124,20 +124,34 @@ describe('ControlsPage', () => {
 
     render(<ControlsPage />);
 
+    // Wait for initial render to finish and useEffect fetchStatus to complete
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     // Get the first range input (Channel 1)
     // Ionic ranges can be tricky, but we can target the element
     const channel1Range = document.querySelectorAll('ion-range')[0] as any;
 
-    // Fire multiple change events
-    fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 10 } }));
-    fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 20 } }));
-    fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 50 } }));
+    // Fire multiple change events inside act
+    act(() => {
+      fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 10 } }));
+    });
+    act(() => {
+      fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 20 } }));
+    });
+    act(() => {
+      fireEvent(channel1Range, new CustomEvent('ionChange', { detail: { value: 50 } }));
+    });
 
     // Should not have been called yet because of debounce
     expect(actuators.setLight).not.toHaveBeenCalled();
 
     // Fast-forward 300ms
-    vi.advanceTimersByTime(300);
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+      await Promise.resolve(); // flush any promises queued by the timer's async callback
+    });
 
     // Should only be called once with the last value (50)
     expect(actuators.setLight).toHaveBeenCalledTimes(1);
@@ -163,7 +177,6 @@ describe('ControlsPage', () => {
   it('handles fetchStatus API failure, shows offline banner, and disables controls', async () => {
     (system.getStatus as any).mockRejectedValueOnce(new Error('Backend offline'));
 
-    const { act } = await import('@testing-library/react');
     render(<ControlsPage />);
 
     await act(async () => {
