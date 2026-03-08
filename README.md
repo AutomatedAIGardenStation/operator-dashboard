@@ -31,6 +31,9 @@ Unified web and mobile application for the GardenStation smart-garden platform. 
 cd frontend
 npm install
 
+# Setup environment variables
+cp .env.example .env
+
 # Run in the browser (hot-reload)
 ionic serve
 
@@ -81,7 +84,11 @@ frontend/src/
 | `npm run build` | Type-check and build for production |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Fix auto-fixable ESLint errors |
+| `npm run format` | Run Prettier to format source files |
 | `npm run test` | Run tests (Vitest) |
+| `npm run test:coverage` | Run tests with coverage report |
+| `npm run test:e2e` | Run Playwright E2E tests |
 | `npm run cap:sync` | Sync web assets to native projects |
 | `npm run cap:android` | Live-reload on Android device |
 | `npm run cap:ios` | Live-reload on iOS simulator |
