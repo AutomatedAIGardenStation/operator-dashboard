@@ -22,7 +22,7 @@ export interface YieldPrediction {
 export const useYieldData = () => {
   const [data, setData] = useState<YieldPrediction[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, _setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     // Simulate an API call latency for MVP visualization
